@@ -153,7 +153,9 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_SPI_RxHalfCpltCallback(SPI_HandleTypeDef *hspi) {
 
+}
 /* USER CODE END 4 */
 
 /**

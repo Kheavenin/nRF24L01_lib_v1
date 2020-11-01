@@ -9,6 +9,7 @@
 #define INC_NRF24L01_H_
 
 #define SPI_BLOCKING_MODO 0
+#define SPI_DMA_MODE 1
 
 /**
  * Includes
@@ -313,5 +314,6 @@ bool nRF_Init(nRF24L01_struct_t *psNRF24L01, SPI_HandleTypeDef *HAL_SPIx, TIM_Ha
 		GPIO_TypeDef *HAL_GPIO_CSN,
 		uint16_t HAL_GPIO_Pin_CSN, GPIO_TypeDef *HAL_GPIO_CE, uint16_t HAL_GPIO_Pin_CE);
 
-
+uint8_t readReg(nRF24L01_struct_t *psNRF24L01, uint8_t addr);
+void writeReg(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t val);
 #endif /* INC_NRF24L01_H_ */

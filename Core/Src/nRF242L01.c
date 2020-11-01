@@ -172,10 +172,8 @@ static void ceHigh(nRF24L01_struct_t *psNRF24L01) {
 /* Elementary functions  nRf24L01+  */
 /* Read and write registers funtions's */
 uint8_t readReg(nRF24L01_struct_t *psNRF24L01, uint8_t addr) {
-	uint8_t cmd = R_REGISTER | addr;
-	uint8_t reg;
-	uint8_t *pCmd = &cmd;
-	uint8_t *pReg = &reg;
+	uint8_t command = R_REGISTER | addr;
+	uint8_t data;
 
 	csnLow(psNRF24L01);
 
@@ -184,13 +182,30 @@ uint8_t readReg(nRF24L01_struct_t *psNRF24L01, uint8_t addr) {
 	delayUs(psNRF24L01, 50);
 	HAL_SPI_Receive((psNRF24L01->hardware_struct.nRFspi), pReg, sizeof(reg), SPI_TIMEOUT);
 #endif
-
-
+#if SPI_DMA_MODE
+	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
+	HAL_SPI_Receive_DMA(psNRF24L01->hardware_struct.nRFspi, &data, sizeof(data));
+#endif
 	csnHigh(psNRF24L01);
-	return reg;
+	return data;
 }
 
+void writeReg(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t val) {
+	uint8_t command = W_REGISTER | addr;
 
+	csnLow(psNRF24L01);
+
+#if SPI_BLOCKING_MODO
+    HAL_SPI_Transmit((nrfStruct->nRFspi), pCmd, sizeof(cmd), SPI_TIMEOUT);
+    delayUs(nrfStruct, 50);
+    HAL_SPI_Transmit((nrfStruct->nRFspi), &val, sizeof(val), SPI_TIMEOUT);
+#endif
+#if SPI_DMA_MODE
+	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
+	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &val, sizeof(val));
+#endif
+	csnHigh(psNRF24L01);
+}
 
 
 
