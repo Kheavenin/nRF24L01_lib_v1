@@ -9,6 +9,12 @@
 #define INC_NRF24L01_H_
 
 /**
+ * Includes
+ */
+#include <stdbool.h>
+
+
+/**
  * Map rregisters
  **/
 
@@ -189,28 +195,27 @@
 /* Bit definitions */
 typedef enum {
 	bit7 = 7, bit6 = 6, bit5 = 5, bit4 = 4, bit3 = 3, bit2 = 2, bit1 = 1, bit0 = 0
-} nRF24L01_bit_num_t;
+} bitNum_t;
 
 /* power enum typedef */
 typedef enum {
 	RF_PWR_0dBm = 0x03, RF_PWR_6dBm = 0x02, RF_PWR_12dBm = 0x01, RF_PWR_18dBm = 0x00
-} nRF24L01_power_RF_t;
+} powerRF_t;
 
 /* data rate enum typedef */
 typedef enum {
 	RF_DataRate_250 = 0x04, RF_DataRate_1M = 0x00, RF_DataRate_2M = 0x01
-} nRF24L01_data_rate_t;
+} dataRate_t;
 
 /* CRC coding */
 typedef enum {
 	CRC_8_bits = 0, CRC_16_bits = 1
-} nRF24L01_width_CRC_t;
+} widthCRC_t;
 
 /* address width typedef */
 typedef enum {
 	shortWidth = 0x01, mediumWidth = 0x02, longWidth = 0x03
-} nRF24L01_address_width_t;
-
+} addressWidth_t;
 
 /* Structures */
 typedef struct {
@@ -297,6 +302,10 @@ typedef struct {
 	nRF24L01_status_struct_t status_struct;
 	nRF24L01_Buffer_struct_t buffer_struct;
 } nRF24L01_struct_t;
+
+bool nRF_Init(nRF24L01_struct_t *psNRF24L01, SPI_HandleTypeDef *HAL_SPIx, TIM_HandleTypeDef *HAL_TIMx,
+		GPIO_TypeDef *HAL_GPIO_CSN,
+		uint16_t HAL_GPIO_Pin_CSN, GPIO_TypeDef *HAL_GPIO_CE, uint16_t HAL_GPIO_Pin_CE);
 
 
 #endif /* INC_NRF24L01_H_ */
