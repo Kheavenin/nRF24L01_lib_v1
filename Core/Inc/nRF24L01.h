@@ -8,6 +8,8 @@
 #ifndef INC_NRF24L01_H_
 #define INC_NRF24L01_H_
 
+#define SPI_BLOCKING_MODO 0
+
 /**
  * Includes
  */

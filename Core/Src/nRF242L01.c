@@ -140,12 +140,55 @@ static void nRF24L01_buffers_Init(nRF24L01_struct_t *psNRF24L01) {
 	memset(psNRF24L01->buffer_struct.ptBufferTX, 0, TX_BUFFER_SIZE);
 }
 
+/**
+ * @
+ */
+static void delayUs(nRF24L01_struct_t *psNRF24L01, uint16_t time);
+
+/**
+ * @
+ */
+/* Micro sencods delay - necessary to SPI transmittion  */
+static void delayUs(nRF24L01_struct_t *psNRF24L01, uint16_t time) {
+
+	__HAL_TIM_SET_COUNTER((psNRF24L01->hardware_struct.nRFtim), 0); //Set star value as 0
+	while (__HAL_TIM_GET_COUNTER(psNRF24L01->hardware_struct.nRFtim) < time); //
+}
+/* CE snd CSN control funtions's */
+static void csnLow(nRF24L01_struct_t *psNRF24L01) {
+	HAL_GPIO_WritePin((psNRF24L01->hardware_struct.nRFportCSN), (psNRF24L01->hardware_struct.nRFpinCSN),
+			GPIO_PIN_RESET);
+}
+static void csnHigh(nRF24L01_struct_t *psNRF24L01) {
+	HAL_GPIO_WritePin((psNRF24L01->hardware_struct.nRFportCSN), (psNRF24L01->hardware_struct.nRFpinCSN), GPIO_PIN_SET);
+}
+static void ceLow(nRF24L01_struct_t *psNRF24L01) {
+	HAL_GPIO_WritePin((psNRF24L01->hardware_struct.nRFportCE), (psNRF24L01->hardware_struct.nRFpinCE), GPIO_PIN_RESET);
+}
+static void ceHigh(nRF24L01_struct_t *psNRF24L01) {
+	HAL_GPIO_WritePin((psNRF24L01->hardware_struct.nRFportCE), (psNRF24L01->hardware_struct.nRFpinCE), GPIO_PIN_SET);
+}
+
+/* Elementary functions  nRf24L01+  */
+/* Read and write registers funtions's */
+uint8_t readReg(nRF24L01_struct_t *psNRF24L01, uint8_t addr) {
+	uint8_t cmd = R_REGISTER | addr;
+	uint8_t reg;
+	uint8_t *pCmd = &cmd;
+	uint8_t *pReg = &reg;
+
+	csnLow(psNRF24L01);
+
+#if SPI_BLOCKING_MODO
+	HAL_SPI_Transmit((psNRF24L01->hardware_struct.nRFspi), pCmd, sizeof(cmd), SPI_TIMEOUT);
+	delayUs(psNRF24L01, 50);
+	HAL_SPI_Receive((psNRF24L01->hardware_struct.nRFspi), pReg, sizeof(reg), SPI_TIMEOUT);
+#endif
 
 
-
-
-
-
+	csnHigh(psNRF24L01);
+	return reg;
+}
 
 
 
