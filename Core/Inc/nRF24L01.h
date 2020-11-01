@@ -12,6 +12,8 @@
  * Includes
  */
 #include <stdbool.h>
+#include "main.h"
+#include "string.h"
 
 
 /**
@@ -279,8 +281,10 @@ typedef struct {
 } nRF24L01_fifo_struct_t;
 
 typedef struct {
-	uint8_t TX_Buffer[TX_BUFFER_SIZE];
-	uint8_t RX_Buffer[RX_BUFFER_SIZE];
+	uint8_t *ptBufferTX;
+	uint8_t *ptBufferRX;
+	uint8_t tBufferTX[TX_BUFFER_SIZE];
+	uint8_t tBufferRX[RX_BUFFER_SIZE];
 } nRF24L01_Buffer_struct_t;
 
 typedef struct {
