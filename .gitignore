@@ -1,0 +1,17 @@
+#C embedded for STM32 .gitignore
+
+#
+*.bin
+*.elf
+*.list
+*.map
+*.list
+
+#
+*.d
+*.o
+*.su
+*.mk
+
+#others
+*.xml
