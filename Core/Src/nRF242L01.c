@@ -176,7 +176,6 @@ uint8_t readReg(nRF24L01_struct_t *psNRF24L01, uint8_t addr) {
 	uint8_t data;
 
 	csnLow(psNRF24L01);
-
 #if SPI_BLOCKING_MODO
 	HAL_SPI_Transmit((psNRF24L01->hardware_struct.nRFspi), pCmd, sizeof(cmd), SPI_TIMEOUT);
 	delayUs(psNRF24L01, 50);
@@ -189,7 +188,6 @@ uint8_t readReg(nRF24L01_struct_t *psNRF24L01, uint8_t addr) {
 	csnHigh(psNRF24L01);
 	return data;
 }
-
 void writeReg(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t val) {
 	uint8_t command = W_REGISTER | addr;
 
@@ -206,8 +204,49 @@ void writeReg(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t val) {
 #endif
 	csnHigh(psNRF24L01);
 }
+/* Extended read and write functions - R/W few registers */
+void readRegExt(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t *buf, size_t bufSize) {
+	uint8_t command = 0;
 
+	csnLow(psNRF24L01);
+#if SPI_BLOCKING_MODO
+	HAL_SPI_Transmit((nrfStruct->nRFspi), pCmd, sizeof(cmd), SPI_TIMEOUT);
+	delayUs(nrfStruct, 50);
+	HAL_SPI_Receive((nrfStruct->nRFspi), buf, bufSize,
+	SPI_TIMEOUT);
+#endif
+#if SPI_DMA_MODE
+	uint8_t i = 0;
+	do {
+		command = R_REGISTER | (addr + i);
+		HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
+		HAL_SPI_Receive_DMA(psNRF24L01->hardware_struct.nRFspi, (buf + i), sizeof(unsigned short int));
+		i++;
+	} while (i != bufSize);
 
+#endif
+	csnHigh(psNRF24L01);
+}
+void writeRegExt(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t *buf, size_t bufSize) {
+	uint8_t command = 0;
+
+	csnLow(psNRF24L01);
+#if SPI_BLOCKING_MODO
+	HAL_SPI_Transmit((nrfStruct->nRFspi), pCmd, sizeof(cmd), SPI_TIMEOUT);
+	delayUs(nrfStruct, 50);
+	HAL_SPI_Transmit((nrfStruct->nRFspi), buf, bufSize, SPI_TIMEOUT);
+#endif
+#if SPI_DMA_MODE
+	uint8_t i = 0;
+	do {
+		command = R_REGISTER | (addr + i);
+		HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
+		HAL_SPI_Receive_DMA(psNRF24L01->hardware_struct.nRFspi, (buf + i), sizeof(unsigned short int));
+		i++;
+	} while (i != bufSize);
+#endif
+	csnHigh(psNRF24L01);
+}
 
 
 
