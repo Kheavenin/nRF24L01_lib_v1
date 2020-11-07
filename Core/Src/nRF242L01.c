@@ -31,7 +31,6 @@ static void ceHigh(nRF24L01_struct_t *psNRF24L01);
 static uint8_t readBit(nRF24L01_struct_t *psNRF24L01, uint8_t addr, bitNum_t bit);
 static void resetBit(nRF24L01_struct_t *psNRF24L01, uint8_t addr, bitNum_t bit);
 static void setBit(nRF24L01_struct_t *psNRF24L01, uint8_t addr, bitNum_t bit);
-uint8_t reversBits(uint8_t toRevers);
 
 /**
  * @Main init function
@@ -386,13 +385,6 @@ static void setBit(nRF24L01_struct_t *psNRF24L01, uint8_t addr, bitNum_t bit) {
 	writeReg(psNRF24L01, addr, tmp);
 }
 
-uint8_t reversBits(uint8_t toRevers) {
-	uint8_t reversed = 0;
-	uint8_t i;
-	for (i = 0; i < 8; ++i)
-		reversed |= ((toRevers >> i) & 1) << (7 - i);
-	return reversed;
-}
 
 /* Elementary functions  nRf24L01+  */
 /* Read and write registers funtions's */
