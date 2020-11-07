@@ -53,18 +53,217 @@ bool nRF_Init(nRF24L01_struct_t *psNRF24L01, SPI_HandleTypeDef *HAL_SPIx, TIM_Ha
 	return true;
 }
 
+/* Elementary functions  nRf24L01+  */
+/* Read and write registers funtions's */
+uint8_t readReg(nRF24L01_struct_t *psNRF24L01, uint8_t addr) {
+	uint8_t command = R_REGISTER | addr;
+	uint8_t data;
 
-/* Power control */
-void pwrUp(nRF24L01_struct_t *psNRF24L01) {
-	uint8_t tmp = readReg(psNRF24L01, CONFIG);
-	tmp |= (1 << 1);
-	writeReg(psNRF24L01, CONFIG, tmp);
+	csnLow(psNRF24L01);
+	/*
+	 HAL_SPI_Transmit((psNRF24L01->hardware_struct.nRFspi), &command, sizeof(command), SPI_TIMEOUT);
+	 HAL_Delay(1);
+	 HAL_SPI_Receive((psNRF24L01->hardware_struct.nRFspi), &data, 1, SPI_TIMEOUT);
+	 */
+	/*
+	 HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
+	 HAL_SPI_Receive_IT(psNRF24L01->hardware_struct.nRFspi, &data, sizeof(data));
+	 */
+	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
+	HAL_SPI_Receive_DMA(psNRF24L01->hardware_struct.nRFspi, &data, 1);
+
+	csnHigh(psNRF24L01);
+
+	return data;
 }
-void pwrDown(nRF24L01_struct_t *psNRF24L01) {
-	ceLow(psNRF24L01);
-	uint8_t tmp = readReg(psNRF24L01, CONFIG);
-	tmp &= (0 << 1); //zmieniono OR na AND
-	writeReg(psNRF24L01, CONFIG, tmp);
+void writeReg(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t val) {
+	uint8_t command = W_REGISTER | addr;
+	uint8_t data = val;
+
+	csnLow(psNRF24L01);
+	/*
+	 HAL_SPI_Transmit((psNRF24L01->hardware_struct.nRFspi), &command, sizeof(command), SPI_TIMEOUT);
+	 HAL_Delay(1);
+	 HAL_SPI_Transmit((psNRF24L01->hardware_struct.nRFspi), &data, sizeof(data), SPI_TIMEOUT);
+	 */
+	/*
+	 HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
+	 HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, &data, sizeof(data));
+	 */
+	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
+	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &data, sizeof(data));
+
+	csnHigh(psNRF24L01);
+}
+/* Extended read and write functions - R/W few registers */
+void readRegExt(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t *pBuf, size_t bufSize) {
+	uint8_t command = 0;
+
+	csnLow(psNRF24L01);
+#if SPI_BLOCKING_MODO
+	HAL_SPI_Transmit((psNRF24L01->nRFspi), pCmd, sizeof(cmd), SPI_TIMEOUT);
+	delayUs(psNRF24L01, 50);
+	HAL_SPI_Receive((psNRF24L01->nRFspi), buf, bufSize,
+	SPI_TIMEOUT);
+#endif
+#if SPI_DMA_MODE
+	uint8_t i = 0;
+	do {
+		command = R_REGISTER | (addr + i);
+		HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
+		HAL_SPI_Receive_DMA(psNRF24L01->hardware_struct.nRFspi, (pBuf + i), sizeof(unsigned short int));
+		i++;
+	} while (i != bufSize);
+
+#endif
+	csnHigh(psNRF24L01);
+}
+void writeRegExt(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t *pBuf, size_t bufSize) {
+	uint8_t command = 0;
+
+	csnLow(psNRF24L01);
+#if SPI_BLOCKING_MODO
+	HAL_SPI_Transmit((psNRF24L01->nRFspi), pCmd, sizeof(cmd), SPI_TIMEOUT);
+	delayUs(psNRF24L01, 50);
+	HAL_SPI_Transmit((psNRF24L01->nRFspi), buf, bufSize, SPI_TIMEOUT);
+#endif
+#if SPI_DMA_MODE
+	uint8_t i = 0;
+	do {
+		command = R_REGISTER | (addr + i);
+		HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
+		HAL_SPI_Receive_DMA(psNRF24L01->hardware_struct.nRFspi, (pBuf + i), sizeof(unsigned short int));
+		i++;
+	} while (i != bufSize);
+#endif
+	csnHigh(psNRF24L01);
+}
+
+/* Payload's functions */
+uint8_t readRxPayload(nRF24L01_struct_t *psNRF24L01, uint8_t *pBuf, size_t bufSize) {
+	if (bufSize < 1)
+		return ERR_CODE;
+	if (bufSize > 32)
+		bufSize = 32;
+
+	uint8_t command = R_RX_PAYLOAD; //set command mask
+
+	csnLow(psNRF24L01);
+	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));	//send command
+	HAL_SPI_Receive_DMA(psNRF24L01->hardware_struct.nRFspi, pBuf, bufSize); 				//read payload
+	csnHigh(psNRF24L01);
+
+	return OK_CODE;
+}
+uint8_t writeTxPayload(nRF24L01_struct_t *psNRF24L01, uint8_t *pBuf, size_t bufSize) {
+	if (bufSize < 1)
+		return ERR_CODE;
+	if (bufSize > 32)
+		bufSize = 32;
+
+	uint8_t command = W_TX_PAYLOAD; //set command mask
+
+	csnLow(psNRF24L01);
+	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command)); //send command
+	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, pBuf, bufSize);	//write payload
+	csnHigh(psNRF24L01);
+
+	return OK_CODE;
+}
+uint8_t writeTxPayloadAck(nRF24L01_struct_t *psNRF24L01, uint8_t *pBuf, size_t bufSize) {
+	if (bufSize < 1)
+		return ERR_CODE;
+	if (bufSize > 32)
+		bufSize = 32;
+
+	uint8_t command = W_ACK_PAYLOAD; //set command mask
+
+	csnLow(psNRF24L01);
+	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command)); 	//send command
+	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, pBuf, bufSize);				//write payload
+	csnHigh(psNRF24L01);
+
+	return OK_CODE;
+}
+uint8_t writeTxPayloadNoAck(nRF24L01_struct_t *psNRF24L01, uint8_t *pBuf, size_t bufSize) {
+	if (bufSize < 1)
+		return ERR_CODE;
+	if (bufSize > 32)
+		bufSize = 32;
+
+	uint8_t command = W_TX_PAYLOAD_NO_ACK; //set command mask
+
+	csnLow(psNRF24L01);
+	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));    //send command
+	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, pBuf, bufSize);		   		//write payload
+	csnHigh(psNRF24L01);
+
+	return OK_CODE;
+}
+
+/* Read payload lenght when DPL enable */
+uint8_t readDynamicPayloadWidth(nRF24L01_struct_t *psNRF24L01) {
+	uint8_t command = R_RX_PL_WID; //set command mask
+	uint8_t width;
+
+	csnLow(psNRF24L01);
+	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command)); //send command
+	HAL_SPI_Receive_DMA(psNRF24L01->hardware_struct.nRFspi, &width, sizeof(width)); //read payload width
+	csnHigh(psNRF24L01);
+
+	return width;
+}
+
+/* Flush functions */
+uint8_t flushTx(nRF24L01_struct_t *psNRF24L01) {
+	uint8_t command = FLUSH_TX; //set command mask
+
+	csnLow(psNRF24L01);
+	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command)); //Flush TX
+	csnHigh(psNRF24L01);
+
+	if (!readBit(psNRF24L01, FIFO_STATUS, bit4)) { //check FIFO status
+		psNRF24L01->fifo_struct.txEmpty = 0;
+		return ERR_CODE;
+	}
+	psNRF24L01->fifo_struct.txEmpty = 1;
+
+	return OK_CODE;
+}
+uint8_t flushRx(nRF24L01_struct_t *psNRF24L01) {
+	uint8_t command = FLUSH_RX; //set command mask
+
+	csnLow(psNRF24L01);
+	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command)); //Flush RX
+	csnHigh(psNRF24L01);
+
+	if (!readBit(psNRF24L01, FIFO_STATUS, bit0)) { //check FIFO status
+		psNRF24L01->fifo_struct.rxEmpty = 0;
+		return ERR_CODE;
+	}
+	psNRF24L01->fifo_struct.rxEmpty = 1;
+
+	return OK_CODE;
+}
+
+/* Others */
+void reuseTxPayload(nRF24L01_struct_t *psNRF24L01) {
+	uint8_t command = REUSE_TX_PL; //set command mask
+
+	csnLow(psNRF24L01);
+	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));    //send re-use last payload
+	csnHigh(psNRF24L01);
+}
+uint8_t getStatus(nRF24L01_struct_t *psNRF24L01) {
+	uint8_t command = NOP;
+	uint8_t reg = 0;
+
+	csnLow(psNRF24L01);
+	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));    //send get command
+	HAL_SPI_Receive_DMA(psNRF24L01->hardware_struct.nRFspi, &reg, sizeof(reg)); 			//get status
+	csnHigh(psNRF24L01);
+
+	return reg;
 }
 
 /* Payload */
@@ -98,6 +297,23 @@ uint8_t checkReceivedPayload(nRF24L01_struct_t *psNRF24L01, uint8_t pipe) {
 	return 0;
 }
 
+/**
+ * @Setters and getters
+ */
+
+/* Power control */
+void pwrUp(nRF24L01_struct_t *psNRF24L01) {
+	uint8_t tmp = readReg(psNRF24L01, CONFIG);
+	tmp |= (1 << 1);
+	writeReg(psNRF24L01, CONFIG, tmp);
+}
+void pwrDown(nRF24L01_struct_t *psNRF24L01) {
+	ceLow(psNRF24L01);
+	uint8_t tmp = readReg(psNRF24L01, CONFIG);
+	tmp &= (0 << 1); //zmieniono OR na AND
+	writeReg(psNRF24L01, CONFIG, tmp);
+}
+
 /* Transmit address data pipe */
 uint8_t setTransmitPipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t *addrBuf, size_t addrBufSize) {
 	if (((psNRF24L01->address_struct.addrWidth) + 2) != addrBufSize) {
@@ -112,17 +328,6 @@ uint8_t setTransmitPipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t *addrBuf, 
 	return OK_CODE;
 }
 
-/* RX Payload width */
-uint8_t getRxPayloadWidth(nRF24L01_struct_t *psNRF24L01, uint8_t pipe) {
-	if (checkPipe(pipe)) {
-		uint8_t addr = RX_PW_P0 + pipe;
-		uint8_t tmp = readReg(psNRF24L01, addr);
-		psNRF24L01->settings_struct.pipePayLen[pipe] = tmp;
-		return tmp;
-	}
-	return ERR_CODE;
-}
-
 uint8_t setRxPayloadWidth(nRF24L01_struct_t *psNRF24L01, uint8_t pipe, uint8_t width) {
 	if (checkPipe(pipe)) {
 		if (width < 1 && width > 32) { //check width correct value
@@ -132,6 +337,17 @@ uint8_t setRxPayloadWidth(nRF24L01_struct_t *psNRF24L01, uint8_t pipe, uint8_t w
 		writeReg(psNRF24L01, addr, width);
 		psNRF24L01->settings_struct.pipePayLen[pipe] = width;
 		return OK_CODE;
+	}
+	return ERR_CODE;
+}
+
+/* RX Payload width */
+uint8_t getRxPayloadWidth(nRF24L01_struct_t *psNRF24L01, uint8_t pipe) {
+	if (checkPipe(pipe)) {
+		uint8_t addr = RX_PW_P0 + pipe;
+		uint8_t tmp = readReg(psNRF24L01, addr);
+		psNRF24L01->settings_struct.pipePayLen[pipe] = tmp;
+		return tmp;
 	}
 	return ERR_CODE;
 }
@@ -245,6 +461,7 @@ void disableAckPayload(nRF24L01_struct_t *psNRF24L01) {
 void enableNoAckCommand(nRF24L01_struct_t *psNRF24L01) {
 	setBit(psNRF24L01, FEATURE, EN_DYN_ACK);
 }
+
 
 /**
  * @Static function for init structures
@@ -386,218 +603,7 @@ static void setBit(nRF24L01_struct_t *psNRF24L01, uint8_t addr, bitNum_t bit) {
 }
 
 
-/* Elementary functions  nRf24L01+  */
-/* Read and write registers funtions's */
-uint8_t readReg(nRF24L01_struct_t *psNRF24L01, uint8_t addr) {
-	uint8_t command = R_REGISTER | addr;
-	uint8_t data;
 
-	csnLow(psNRF24L01);
-	/*
-	HAL_SPI_Transmit((psNRF24L01->hardware_struct.nRFspi), &command, sizeof(command), SPI_TIMEOUT);
-	HAL_Delay(1);
-	HAL_SPI_Receive((psNRF24L01->hardware_struct.nRFspi), &data, 1, SPI_TIMEOUT);
-	 */
-	/*
-	HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
-	HAL_SPI_Receive_IT(psNRF24L01->hardware_struct.nRFspi, &data, sizeof(data));
-	 */
-	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
-	HAL_SPI_Receive_DMA(psNRF24L01->hardware_struct.nRFspi, &data, 1);
-
-	csnHigh(psNRF24L01);
-
-	return data;
-}
-void writeReg(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t val) {
-	uint8_t command = W_REGISTER | addr;
-	uint8_t data = val;
-
-	csnLow(psNRF24L01);
-	/*
-	HAL_SPI_Transmit((psNRF24L01->hardware_struct.nRFspi), &command, sizeof(command), SPI_TIMEOUT);
-	HAL_Delay(1);
-	HAL_SPI_Transmit((psNRF24L01->hardware_struct.nRFspi), &data, sizeof(data), SPI_TIMEOUT);
-	 */
-	/*
-	HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
-	HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, &data, sizeof(data));
-	 */
-	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
-	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &data, sizeof(data));
-
-	csnHigh(psNRF24L01);
-}
-/* Extended read and write functions - R/W few registers */
-void readRegExt(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t *pBuf, size_t bufSize) {
-	uint8_t command = 0;
-
-	csnLow(psNRF24L01);
-#if SPI_BLOCKING_MODO
-	HAL_SPI_Transmit((psNRF24L01->nRFspi), pCmd, sizeof(cmd), SPI_TIMEOUT);
-	delayUs(psNRF24L01, 50);
-	HAL_SPI_Receive((psNRF24L01->nRFspi), buf, bufSize,
-	SPI_TIMEOUT);
-#endif
-#if SPI_DMA_MODE
-	uint8_t i = 0;
-	do {
-		command = R_REGISTER | (addr + i);
-		HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
-		HAL_SPI_Receive_DMA(psNRF24L01->hardware_struct.nRFspi, (pBuf + i), sizeof(unsigned short int));
-		i++;
-	} while (i != bufSize);
-
-#endif
-	csnHigh(psNRF24L01);
-}
-void writeRegExt(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t *pBuf, size_t bufSize) {
-	uint8_t command = 0;
-
-	csnLow(psNRF24L01);
-#if SPI_BLOCKING_MODO
-	HAL_SPI_Transmit((psNRF24L01->nRFspi), pCmd, sizeof(cmd), SPI_TIMEOUT);
-	delayUs(psNRF24L01, 50);
-	HAL_SPI_Transmit((psNRF24L01->nRFspi), buf, bufSize, SPI_TIMEOUT);
-#endif
-#if SPI_DMA_MODE
-	uint8_t i = 0;
-	do {
-		command = R_REGISTER | (addr + i);
-		HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
-		HAL_SPI_Receive_DMA(psNRF24L01->hardware_struct.nRFspi, (pBuf + i), sizeof(unsigned short int));
-		i++;
-	} while (i != bufSize);
-#endif
-	csnHigh(psNRF24L01);
-}
-
-/* Payload's functions */
-uint8_t readRxPayload(nRF24L01_struct_t *psNRF24L01, uint8_t *pBuf, size_t bufSize) {
-	if (bufSize < 1)
-		return ERR_CODE;
-	if (bufSize > 32)
-		bufSize = 32;
-
-	uint8_t command = R_RX_PAYLOAD; //set command mask
-
-	csnLow(psNRF24L01);
-	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));	//send command
-	HAL_SPI_Receive_DMA(psNRF24L01->hardware_struct.nRFspi, pBuf, bufSize); 				//read payload
-	csnHigh(psNRF24L01);
-
-	return OK_CODE;
-}
-uint8_t writeTxPayload(nRF24L01_struct_t *psNRF24L01, uint8_t *pBuf, size_t bufSize) {
-	if (bufSize < 1)
-		return ERR_CODE;
-	if (bufSize > 32)
-		bufSize = 32;
-
-	uint8_t command = W_TX_PAYLOAD; //set command mask
-
-	csnLow(psNRF24L01);
-	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command)); //send command
-	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, pBuf, bufSize);	//write payload
-	csnHigh(psNRF24L01);
-
-	return OK_CODE;
-}
-uint8_t writeTxPayloadAck(nRF24L01_struct_t *psNRF24L01, uint8_t *pBuf, size_t bufSize) {
-	if (bufSize < 1)
-		return ERR_CODE;
-	if (bufSize > 32)
-		bufSize = 32;
-
-	uint8_t command = W_ACK_PAYLOAD; //set command mask
-
-	csnLow(psNRF24L01);
-	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command)); 	//send command
-	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, pBuf, bufSize);				//write payload
-	csnHigh(psNRF24L01);
-
-	return OK_CODE;
-}
-uint8_t writeTxPayloadNoAck(nRF24L01_struct_t *psNRF24L01, uint8_t *pBuf, size_t bufSize) {
-	if (bufSize < 1)
-		return ERR_CODE;
-	if (bufSize > 32)
-		bufSize = 32;
-
-	uint8_t command = W_TX_PAYLOAD_NO_ACK; //set command mask
-
-	csnLow(psNRF24L01);
-	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));    //send command
-	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, pBuf, bufSize);		   		//write payload
-	csnHigh(psNRF24L01);
-
-	return OK_CODE;
-}
-
-/* Read payload lenght when DPL enable */
-uint8_t readDynamicPayloadWidth(nRF24L01_struct_t *psNRF24L01) {
-	uint8_t command = R_RX_PL_WID; //set command mask
-	uint8_t width;
-
-	csnLow(psNRF24L01);
-	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command)); //send command
-	HAL_SPI_Receive_DMA(psNRF24L01->hardware_struct.nRFspi, &width, sizeof(width)); //read payload width
-	csnHigh(psNRF24L01);
-	
-	return width;
-}
-
-/* Flush functions */
-uint8_t flushTx(nRF24L01_struct_t *psNRF24L01) {
-	uint8_t command = FLUSH_TX; //set command mask
-
-	csnLow(psNRF24L01);
-	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command)); //Flush TX
-	csnHigh(psNRF24L01);
-
-	if (!readBit(psNRF24L01, FIFO_STATUS, bit4)) { //check FIFO status
-		psNRF24L01->fifo_struct.txEmpty = 0;
-		return ERR_CODE;
-	}
-	psNRF24L01->fifo_struct.txEmpty = 1;
-
-	return OK_CODE;
-}
-uint8_t flushRx(nRF24L01_struct_t *psNRF24L01) {
-	uint8_t command = FLUSH_RX; //set command mask
-
-	csnLow(psNRF24L01);
-	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command)); //Flush RX
-	csnHigh(psNRF24L01);
-
-	if (!readBit(psNRF24L01, FIFO_STATUS, bit0)) { //check FIFO status
-		psNRF24L01->fifo_struct.rxEmpty = 0;
-		return ERR_CODE;
-	}
-	psNRF24L01->fifo_struct.rxEmpty = 1;
-
-	return OK_CODE;
-}
-
-/* Others */
-void reuseTxPayload(nRF24L01_struct_t *psNRF24L01) {
-	uint8_t command = REUSE_TX_PL; //set command mask
-
-	csnLow(psNRF24L01);
-	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));    //send re-use last payload
-	csnHigh(psNRF24L01);
-}
-uint8_t getStatus(nRF24L01_struct_t *psNRF24L01) {
-	uint8_t command = NOP;
-	uint8_t reg = 0;
-
-	csnLow(psNRF24L01);
-	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));    //send get command
-	HAL_SPI_Receive_DMA(psNRF24L01->hardware_struct.nRFspi, &reg, sizeof(reg)); 			//get status
-	csnHigh(psNRF24L01);
-
-	return reg;
-}
 
 
 
