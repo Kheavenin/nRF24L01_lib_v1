@@ -314,6 +314,32 @@ bool nRF_Init(nRF24L01_struct_t *psNRF24L01, SPI_HandleTypeDef *HAL_SPIx, TIM_Ha
 		GPIO_TypeDef *HAL_GPIO_CSN,
 		uint16_t HAL_GPIO_Pin_CSN, GPIO_TypeDef *HAL_GPIO_CE, uint16_t HAL_GPIO_Pin_CE);
 
+/* Read/Write functions */
+uint8_t readReg(nRF24L01_struct_t *psNRF24L01, uint8_t addr);
+void writeReg(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t val);
+
+/* Extended read and write functions - R/W few registers */
+void readRegExt(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t *pBuf, size_t bufSize);
+void writeRegExt(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t *pBuf, size_t bufSize);
+
+/* Payload's functions */
+uint8_t readRxPayload(nRF24L01_struct_t *psNRF24L01, uint8_t *pBuf, size_t bufSize);
+uint8_t writeTxPayload(nRF24L01_struct_t *psNRF24L01, uint8_t *pBuf, size_t bufSize);
+uint8_t writeTxPayloadAck(nRF24L01_struct_t *psNRF24L01, uint8_t *pBuf, size_t bufSize);
+uint8_t writeTxPayloadNoAck(nRF24L01_struct_t *psNRF24L01, uint8_t *pBuf, size_t bufSize);
+
+/* Read payload lenght when DPL enable */
+uint8_t readDynamicPayloadWidth(nRF24L01_struct_t *psNRF24L01);
+
+/* Flush functions */
+uint8_t flushTx(nRF24L01_struct_t *psNRF24L01);
+uint8_t flushRx(nRF24L01_struct_t *psNRF24L01);
+
+/* Others */
+void reuseTxPayload(nRF24L01_struct_t *psNRF24L01);
+uint8_t getStatus(nRF24L01_struct_t *psNRF24L01);
+
+
 /* Power control */
 void pwrUp(nRF24L01_struct_t *psNRF24L01);
 void pwrDown(nRF24L01_struct_t *psNRF24L01);
@@ -419,30 +445,4 @@ void enableAckPayload(nRF24L01_struct_t *psNRF24L01);
 void disableAckPayload(nRF24L01_struct_t *psNRF24L01);
 
 void enableNoAckCommand(nRF24L01_struct_t *psNRF24L01); //TODO: to tests
-
-
-/* Read/Write functions */
-uint8_t readReg(nRF24L01_struct_t *psNRF24L01, uint8_t addr);
-void writeReg(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t val);
-
-/* Extended read and write functions - R/W few registers */
-void readRegExt(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t *pBuf, size_t bufSize);
-void writeRegExt(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t *pBuf, size_t bufSize);
-
-/* Payload's functions */
-uint8_t readRxPayload(nRF24L01_struct_t *psNRF24L01, uint8_t *pBuf, size_t bufSize);
-uint8_t writeTxPayload(nRF24L01_struct_t *psNRF24L01, uint8_t *pBuf, size_t bufSize);
-uint8_t writeTxPayloadAck(nRF24L01_struct_t *psNRF24L01, uint8_t *pBuf, size_t bufSize);
-uint8_t writeTxPayloadNoAck(nRF24L01_struct_t *psNRF24L01, uint8_t *pBuf, size_t bufSize);
-
-/* Read payload lenght when DPL enable */
-uint8_t readDynamicPayloadWidth(nRF24L01_struct_t *psNRF24L01);
-
-/* Flush functions */
-uint8_t flushTx(nRF24L01_struct_t *psNRF24L01);
-uint8_t flushRx(nRF24L01_struct_t *psNRF24L01);
-
-/* Others */
-void reuseTxPayload(nRF24L01_struct_t *psNRF24L01);
-uint8_t getStatus(nRF24L01_struct_t *psNRF24L01);
 #endif /* INC_NRF24L01_H_ */

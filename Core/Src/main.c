@@ -100,6 +100,7 @@ int main(void)
 	nRF24L01_struct_t sRF;
 	psRF = &sRF;
 	nRF_Init(psRF, &hspi1, &htim1, SPI1_CSN_GPIO_Port, SPI1_CSN_Pin, nRF_CE_GPIO_Port, nRF_CE_Pin);
+	HAL_TIM_Base_Start(psRF->hardware_struct.nRFtim);
 	uint8_t read = getStatus(&sRF);
 	pwrUp(psRF);
 	read = readReg(psRF, CONFIG);
@@ -114,6 +115,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+		delayUs(psRF, 100);
 		read = readReg(psRF, CONFIG);
 		writeReg(psRF, CONFIG, 0x0F);
 		read = readReg(psRF, CONFIG);

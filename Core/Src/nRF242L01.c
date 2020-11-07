@@ -22,7 +22,7 @@ static void nRF24L01_buffers_Init(nRF24L01_struct_t *psNRF24L01);
 /**
  * @
  */
-static void delayUs(nRF24L01_struct_t *psNRF24L01, uint16_t time);
+void delayUs(nRF24L01_struct_t *psNRF24L01, uint16_t time);
 static void csnLow(nRF24L01_struct_t *psNRF24L01);
 static void csnHigh(nRF24L01_struct_t *psNRF24L01);
 static void ceLow(nRF24L01_struct_t *psNRF24L01);
@@ -303,6 +303,46 @@ void pwrDown(nRF24L01_struct_t *psNRF24L01) {
 	writeReg(psNRF24L01, CONFIG, tmp);
 }
 
+/* To turn off RX/TX state of module use mode Standby */
+/**
+ * @Brief	Switch radio module to Receiver (PRX) mode
+ * @Retval	None
+ */
+/*
+void modeRX(nRF24L01_struct_t *psNRF24L01) {
+		pwrUp(psNRF24L01);
+		delayUs(psNRF24L01, 1500); //wait 1.5ms fo nRF24L01+ stand up
+	}
+	flushRx(psNRF24L01); //clear (flush) RX FIFO buffer
+	flushTx(psNRF24L01); //clear (flush) TX FIFO buffer
+
+	clearRX_DR(psNRF24L01); //clear interrupts flags
+	clearTX_DS(psNRF24L01);
+	clearMAX_RT(psNRF24L01);
+	//nRF in Standby-I
+	ceHigh(psNRF24L01); //set high on CE line
+	setBit(psNRF24L01, CONFIG, bit0);
+	delayUs(psNRF24L01, RX_TX_SETTING_TIME);
+}
+void modeTX(nRF24L01_struct_t *psNRF24L01) {
+	if (!readBit(psNRF24L01, CONFIG, bit1)) { //Check state of module
+		pwrUp(psNRF24L01);
+		delayUs(psNRF24L01, 1500); //wait 1.5ms fo nRF24L01+ stand up
+	}
+	flushRx(psNRF24L01); //clear (flush) RX FIFO buffer
+	flushTx(psNRF24L01); //clear (flush) TX FIFO buffer
+
+	clearRX_DR(psNRF24L01); //clear interrupts flags
+	clearTX_DS(psNRF24L01);
+	clearMAX_RT(psNRF24L01);
+
+	ceHigh(psNRF24L01);
+	resetBit(psNRF24L01, CONFIG, bit0);
+	delayUs(psNRF24L01, RX_TX_SETTING_TIME);
+}
+
+ */
+
 /* Transmit address data pipe */
 uint8_t setTransmitPipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t *addrBuf, size_t addrBufSize) {
 	if (((psNRF24L01->address_struct.addrWidth) + 2) != addrBufSize) {
@@ -554,11 +594,10 @@ static void nRF24L01_buffers_Init(nRF24L01_struct_t *psNRF24L01) {
  * @
  */
 /* Micro sencods delay - necessary to SPI transmittion  */
-static void delayUs(nRF24L01_struct_t *psNRF24L01, uint16_t time) {
-	unsigned int count = __HAL_TIM_SET_COUNTER((psNRF24L01->hardware_struct.nRFtim), 0); //Set star value as 0
-	while (count < time) {
-		count = __HAL_TIM_GET_COUNTER(psNRF24L01->hardware_struct.nRFtim); //
-	}
+void delayUs(nRF24L01_struct_t *psNRF24L01, uint16_t time) {
+__HAL_TIM_SET_COUNTER((psNRF24L01->hardware_struct.nRFtim), 0); //Set star value as 0
+while (__HAL_TIM_GET_COUNTER(psNRF24L01->hardware_struct.nRFtim) < time)
+	; //
 }
 
 /* CE snd CSN control funtions's */
