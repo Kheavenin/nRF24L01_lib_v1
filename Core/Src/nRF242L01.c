@@ -20,12 +20,9 @@ static void nRF24L01_status_Init(nRF24L01_struct_t *psNRF24L01);
 static void nRF24L01_buffers_Init(nRF24L01_struct_t *psNRF24L01);
 
 /**
-
  * @
  */
-#if SPI_BLOCKING_MODE
 static void delayUs(nRF24L01_struct_t *psNRF24L01, uint16_t time);
-#endif
 static void csnLow(nRF24L01_struct_t *psNRF24L01);
 static void csnHigh(nRF24L01_struct_t *psNRF24L01);
 static void ceLow(nRF24L01_struct_t *psNRF24L01);
@@ -34,7 +31,7 @@ static void ceHigh(nRF24L01_struct_t *psNRF24L01);
 static uint8_t readBit(nRF24L01_struct_t *psNRF24L01, uint8_t addr, bitNum_t bit);
 static void resetBit(nRF24L01_struct_t *psNRF24L01, uint8_t addr, bitNum_t bit);
 static void setBit(nRF24L01_struct_t *psNRF24L01, uint8_t addr, bitNum_t bit);
-
+uint8_t reversBits(uint8_t toRevers);
 
 /**
  * @Main init function
@@ -57,6 +54,198 @@ bool nRF_Init(nRF24L01_struct_t *psNRF24L01, SPI_HandleTypeDef *HAL_SPIx, TIM_Ha
 	return true;
 }
 
+
+/* Power control */
+void pwrUp(nRF24L01_struct_t *psNRF24L01) {
+	uint8_t tmp = readReg(psNRF24L01, CONFIG);
+	tmp |= (1 << 1);
+	writeReg(psNRF24L01, CONFIG, tmp);
+}
+void pwrDown(nRF24L01_struct_t *psNRF24L01) {
+	ceLow(psNRF24L01);
+	uint8_t tmp = readReg(psNRF24L01, CONFIG);
+	tmp &= (0 << 1); //zmieniono OR na AND
+	writeReg(psNRF24L01, CONFIG, tmp);
+}
+
+/* Payload */
+uint8_t sendPayload(nRF24L01_struct_t *psNRF24L01, uint8_t *buf, size_t bufSize) {
+	if (HAL_GPIO_ReadPin(psNRF24L01->hardware_struct.nRFportCSN, psNRF24L01->hardware_struct.nRFpinCSN)) {
+		ceLow(psNRF24L01);
+	}
+	if (getStatusFullTxFIFO(psNRF24L01)) {
+		flushTx(psNRF24L01);
+	}
+	if (getTX_DS(psNRF24L01)) {
+		clearTX_DS(psNRF24L01);
+	}
+	if (writeTxPayload(psNRF24L01, buf, bufSize)) {
+		ceHigh(psNRF24L01);
+		delayUs(psNRF24L01, CE_HIGH_TIME);
+		ceLow(psNRF24L01);
+		if (getTX_DS(psNRF24L01)) {
+			return OK_CODE;
+		}
+	}
+	return 0;
+}
+uint8_t checkReceivedPayload(nRF24L01_struct_t *psNRF24L01, uint8_t pipe) {
+	if (getPipeStatusRxFIFO(psNRF24L01) == pipe) {
+		if (getRX_DR(psNRF24L01)) {
+			clearRX_DR(psNRF24L01);
+		}
+		return 1;
+	}
+	return 0;
+}
+
+/* Transmit address data pipe */
+uint8_t setTransmitPipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t *addrBuf, size_t addrBufSize) {
+	if (((psNRF24L01->address_struct.addrWidth) + 2) != addrBufSize) {
+		return ERR_CODE;
+	}
+
+	uint8_t i;
+	for (i = 0; i < addrBufSize; i++) { //write to struct
+		psNRF24L01->address_struct.txAddr[i] = addrBuf[i];
+	}
+	writeRegExt(psNRF24L01, TX_ADDR, addrBuf, addrBufSize);
+	return OK_CODE;
+}
+
+/* RX Payload width */
+uint8_t getRxPayloadWidth(nRF24L01_struct_t *psNRF24L01, uint8_t pipe) {
+	if (checkPipe(pipe)) {
+		uint8_t addr = RX_PW_P0 + pipe;
+		uint8_t tmp = readReg(psNRF24L01, addr);
+		psNRF24L01->settings_struct.pipePayLen[pipe] = tmp;
+		return tmp;
+	}
+	return ERR_CODE;
+}
+
+uint8_t setRxPayloadWidth(nRF24L01_struct_t *psNRF24L01, uint8_t pipe, uint8_t width) {
+	if (checkPipe(pipe)) {
+		if (width < 1 && width > 32) { //check width correct value
+			return ERR_CODE;
+		}
+		uint8_t addr = RX_PW_P0 + pipe;
+		writeReg(psNRF24L01, addr, width);
+		psNRF24L01->settings_struct.pipePayLen[pipe] = width;
+		return OK_CODE;
+	}
+	return ERR_CODE;
+}
+
+/* FIFO status */
+/**
+ * @Brief	Return status of RX FIFO buffer by check bits in FIFO Status Register
+ * */
+uint8_t getRxStatusFIFO(nRF24L01_struct_t *psNRF24L01) {
+	uint8_t tmp = readReg(psNRF24L01, FIFO_STATUS);
+	if ((tmp & 0x03) == RX_FIFO_MASK_EMPTY) {
+		psNRF24L01->fifo_struct.rxEmpty = 1;
+		psNRF24L01->fifo_struct.rxFull = 0;
+		psNRF24L01->fifo_struct.rxRead = 0;
+		return RX_FIFO_MASK_EMPTY; //RX FIFO register buffer is empty
+	}
+	if ((tmp & 0x03) == RX_FIFO_MASK_FULL) {
+		psNRF24L01->fifo_struct.rxEmpty = 0;
+		psNRF24L01->fifo_struct.rxFull = 1;
+		psNRF24L01->fifo_struct.rxRead = 1;
+		return RX_FIFO_MASK_FULL; ////RX FIFO register buffer is full
+	}
+	if ((tmp & 0x03) == RX_FIFO_MASK_DATA) {
+		psNRF24L01->fifo_struct.rxEmpty = 0;
+		psNRF24L01->fifo_struct.rxFull = 0;
+		psNRF24L01->fifo_struct.rxRead = 1;
+		return RX_FIFO_MASK_DATA; //RX FIFO register buffer has some data but isn't full
+	}
+	return ERR_CODE;
+}
+/**
+ * @Brief	Return status of TX FIFO buffer by check bits in FIFO Status Register
+ * */
+uint8_t getTxStatusFIFO(nRF24L01_struct_t *psNRF24L01) {
+	uint8_t tmp = readReg(psNRF24L01, FIFO_STATUS);
+	tmp = tmp >> 4;
+	if ((tmp & 0x03) == TX_FIFO_MASK_EMPTY) {
+		psNRF24L01->fifo_struct.txEmpty = 1;
+		psNRF24L01->fifo_struct.txFull = 0;
+		psNRF24L01->fifo_struct.txSend = 0;
+		return TX_FIFO_MASK_EMPTY;
+	}
+	if ((tmp & 0x03) == TX_FIFO_MASK_FULL) {
+		psNRF24L01->fifo_struct.txEmpty = 0;
+		psNRF24L01->fifo_struct.txFull = 1;
+		psNRF24L01->fifo_struct.txSend = 1;
+		return TX_FIFO_MASK_FULL;
+	}
+	if ((tmp & 0x03) == TX_FIFO_MASK_DATA) {
+		psNRF24L01->fifo_struct.txEmpty = 0;
+		psNRF24L01->fifo_struct.txFull = 0;
+		psNRF24L01->fifo_struct.txSend = 1;
+		return TX_FIFO_MASK_DATA;
+	}
+	return ERR_CODE;
+}
+/**
+ * @Brief	Checking reuse package
+ * @Retval	TX_REUSE_USED mean that nRF24 module reuse to send again same package
+ * 			TX_REUSE_UNUSED mena that nRF24 module doeasn't reuse to send again same package
+ **/
+uint8_t getTxReuse(nRF24L01_struct_t *psNRF24L01) {
+	uint8_t tmp = readBit(psNRF24L01, FIFO_STATUS, TX_REUSE);
+	psNRF24L01->fifo_struct.txReUse = tmp;
+	if (tmp == 0x01) {
+		return TX_REUSE_USED;
+	}
+	return TX_REUSE_UNUSED;
+}
+
+/* Dynamic Payload Lenggth */
+uint8_t enableDynamicPayloadLengthPipe(nRF24L01_struct_t *psNRF24L01, uint8_t pipe) {
+	if (!checkPipe(pipe)) {
+		return ERR_CODE;
+	}
+	setBit(psNRF24L01, DYNPD, pipe);
+	psNRF24L01->settings_struct.pipeDPL |= (1 << pipe);
+	return OK_CODE;
+}
+
+uint8_t disableDynamicPayloadLengthPipe(nRF24L01_struct_t *psNRF24L01, uint8_t pipe) {
+	if (!checkPipe(pipe)) {
+		return ERR_CODE;
+	}
+	resetBit(psNRF24L01, DYNPD, pipe);
+	psNRF24L01->settings_struct.pipeDPL |= (0 << pipe);
+	return OK_CODE;
+}
+/* Feature */
+void enableDynamicPayloadLength(nRF24L01_struct_t *psNRF24L01) {
+	setBit(psNRF24L01, FEATURE, EN_DPL);
+	psNRF24L01->settings_struct.enableDPL = 1;
+}
+void disableDynamicPayloadLength(nRF24L01_struct_t *psNRF24L01) {
+	resetBit(psNRF24L01, FEATURE, EN_DPL);
+	psNRF24L01->settings_struct.enableDPL = 0;
+}
+
+void enableAckPayload(nRF24L01_struct_t *psNRF24L01) {
+	setBit(psNRF24L01, FEATURE, EN_ACK_PAY);
+	psNRF24L01->settings_struct.enableAckPay = 1;
+}
+void disableAckPayload(nRF24L01_struct_t *psNRF24L01) {
+	resetBit(psNRF24L01, FEATURE, EN_ACK_PAY);
+	psNRF24L01->settings_struct.enableAckPay = 0;
+}
+
+/**
+ * @Brief	Enable W_TX_PAYLOAD_NOACK command
+ * */
+void enableNoAckCommand(nRF24L01_struct_t *psNRF24L01) {
+	setBit(psNRF24L01, FEATURE, EN_DYN_ACK);
+}
 
 /**
  * @Static function for init structures
@@ -160,13 +349,13 @@ static void nRF24L01_buffers_Init(nRF24L01_struct_t *psNRF24L01) {
  * @
  */
 /* Micro sencods delay - necessary to SPI transmittion  */
-#if SPI_BLOCKING_MODE
 static void delayUs(nRF24L01_struct_t *psNRF24L01, uint16_t time) {
-
-	__HAL_TIM_SET_COUNTER((psNRF24L01->hardware_struct.nRFtim), 0); //Set star value as 0
-	while (__HAL_TIM_GET_COUNTER(psNRF24L01->hardware_struct.nRFtim) < time); //
+	unsigned int count = __HAL_TIM_SET_COUNTER((psNRF24L01->hardware_struct.nRFtim), 0); //Set star value as 0
+	while (count < time) {
+		count = __HAL_TIM_GET_COUNTER(psNRF24L01->hardware_struct.nRFtim); //
+	}
 }
-#endif
+
 /* CE snd CSN control funtions's */
 static void csnLow(nRF24L01_struct_t *psNRF24L01) {
 	HAL_GPIO_WritePin((psNRF24L01->hardware_struct.nRFportCSN), (psNRF24L01->hardware_struct.nRFpinCSN),
@@ -197,6 +386,13 @@ static void setBit(nRF24L01_struct_t *psNRF24L01, uint8_t addr, bitNum_t bit) {
 	writeReg(psNRF24L01, addr, tmp);
 }
 
+uint8_t reversBits(uint8_t toRevers) {
+	uint8_t reversed = 0;
+	uint8_t i;
+	for (i = 0; i < 8; ++i)
+		reversed |= ((toRevers >> i) & 1) << (7 - i);
+	return reversed;
+}
 
 /* Elementary functions  nRf24L01+  */
 /* Read and write registers funtions's */
@@ -205,32 +401,37 @@ uint8_t readReg(nRF24L01_struct_t *psNRF24L01, uint8_t addr) {
 	uint8_t data;
 
 	csnLow(psNRF24L01);
-#if SPI_BLOCKING_MODO
-	HAL_SPI_Transmit((psNRF24L01->hardware_struct.nRFspi), pCmd, sizeof(cmd), SPI_TIMEOUT);
-	delayUs(psNRF24L01, 50);
-	HAL_SPI_Receive((psNRF24L01->hardware_struct.nRFspi), pReg, sizeof(reg), SPI_TIMEOUT);
-#endif
-#if SPI_DMA_MODE
+	/*
+	HAL_SPI_Transmit((psNRF24L01->hardware_struct.nRFspi), &command, sizeof(command), SPI_TIMEOUT);
+	HAL_Delay(1);
+	HAL_SPI_Receive((psNRF24L01->hardware_struct.nRFspi), &data, 1, SPI_TIMEOUT);
+	 */
 	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
-	HAL_SPI_Receive_DMA(psNRF24L01->hardware_struct.nRFspi, &data, sizeof(data));
-#endif
+	HAL_SPI_Receive_DMA(psNRF24L01->hardware_struct.nRFspi, &data, 1);
+	/*
+	HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
+	HAL_SPI_Receive_IT(psNRF24L01->hardware_struct.nRFspi, &data, sizeof(data));
+	 */
 	csnHigh(psNRF24L01);
+
 	return data;
 }
 void writeReg(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t val) {
 	uint8_t command = W_REGISTER | addr;
+	uint8_t data = val;
 
 	csnLow(psNRF24L01);
-
-#if SPI_BLOCKING_MODO
-    HAL_SPI_Transmit((psNRF24L01->nRFspi), pCmd, sizeof(cmd), SPI_TIMEOUT);
-    delayUs(psNRF24L01, 50);
-    HAL_SPI_Transmit((psNRF24L01->nRFspi), &val, sizeof(val), SPI_TIMEOUT);
-#endif
-#if SPI_DMA_MODE
+	/*
+	HAL_SPI_Transmit((psNRF24L01->hardware_struct.nRFspi), &command, sizeof(command), SPI_TIMEOUT);
+	HAL_Delay(1);
+	HAL_SPI_Transmit((psNRF24L01->hardware_struct.nRFspi), &data, sizeof(data), SPI_TIMEOUT);
+	 */
 	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
-	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &val, sizeof(val));
-#endif
+	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &data, sizeof(data));
+	/*
+	HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
+	HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, &data, sizeof(data));
+	 */
 	csnHigh(psNRF24L01);
 }
 /* Extended read and write functions - R/W few registers */

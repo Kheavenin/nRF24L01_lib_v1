@@ -314,6 +314,113 @@ bool nRF_Init(nRF24L01_struct_t *psNRF24L01, SPI_HandleTypeDef *HAL_SPIx, TIM_Ha
 		GPIO_TypeDef *HAL_GPIO_CSN,
 		uint16_t HAL_GPIO_Pin_CSN, GPIO_TypeDef *HAL_GPIO_CE, uint16_t HAL_GPIO_Pin_CE);
 
+/* Power control */
+void pwrUp(nRF24L01_struct_t *psNRF24L01);
+void pwrDown(nRF24L01_struct_t *psNRF24L01);
+
+/* Modes */
+void modeRX(nRF24L01_struct_t *psNRF24L01);
+void modeTX(nRF24L01_struct_t *psNRF24L01);
+void modeStandby(nRF24L01_struct_t *psNRF24L01);
+
+/* Payload */
+uint8_t sendPayload(nRF24L01_struct_t *psNRF24L01, uint8_t *buf, size_t bufSize);
+uint8_t checkReceivedPayload(nRF24L01_struct_t *psNRF24L01, uint8_t pipe);
+
+/* Interrupts */
+void disableTXinterrupt(nRF24L01_struct_t *psNRF24L01);    //mask data send interrupt
+void disableRXinterrupt(nRF24L01_struct_t *psNRF24L01);    //mask data receive interrupt
+void disableMaxRTinterrupt(nRF24L01_struct_t *psNRF24L01); //mask data retransmition interrupt
+
+void enableTXinterrupt(nRF24L01_struct_t *psNRF24L01); //dont mask data send interrupt
+void enableRXinterrupt(nRF24L01_struct_t *psNRF24L01); //dont mask data receive interrupt
+void enableRTinterrupt(nRF24L01_struct_t *psNRF24L01); //dont mask data retransmition interrupt
+
+void clearRX_DR(nRF24L01_struct_t *psNRF24L01); //clear irt bits in Status Register
+void clearTX_DS(nRF24L01_struct_t *psNRF24L01);
+void clearMAX_RT(nRF24L01_struct_t *psNRF24L01);
+void clearInterruptFlags(nRF24L01_struct_t *psNRF24L01);
+
+uint8_t getRX_DR(nRF24L01_struct_t *psNRF24L01);
+uint8_t getTX_DS(nRF24L01_struct_t *psNRF24L01);
+uint8_t getMAX_RT(nRF24L01_struct_t *psNRF24L01);
+uint8_t getInterruptFlags(nRF24L01_struct_t *psNRF24L01);
+
+/* CRC */
+void enableCRC(nRF24L01_struct_t *psNRF24L01);
+void setCRC(nRF24L01_struct_t *psNRF24L01, widthCRC_t w);
+
+/* Auto ACK */
+uint8_t checkPipe(uint8_t pipe);
+uint8_t enableAutoAckPipe(nRF24L01_struct_t *psNRF24L01, uint8_t pipe);
+uint8_t disableAutoAckPipe(nRF24L01_struct_t *psNRF24L01, uint8_t pipe);
+
+/* RX addresses */
+uint8_t enableRxAddr(nRF24L01_struct_t *psNRF24L01, uint8_t pipe);
+uint8_t disableRxAddr(nRF24L01_struct_t *psNRF24L01, uint8_t pipe);
+
+/* Address Width */
+void setAddrWidth(nRF24L01_struct_t *psNRF24L01, addressWidth_t width);
+
+/* Setup retransmission */
+uint8_t setAutoRetrCount(nRF24L01_struct_t *psNRF24L01, uint8_t count);
+uint8_t setAutoRetrDelay(nRF24L01_struct_t *psNRF24L01, uint8_t delay);
+
+/* RF channel */
+uint8_t setChannel(nRF24L01_struct_t *psNRF24L01, uint8_t channel);
+
+/* RF setup */
+/*
+ * @Brief enableContCarrier and enableLockPLL should be use only to RF test
+ */
+void enableContCarrier(nRF24L01_struct_t *psNRF24L01);
+void disableContCarrier(nRF24L01_struct_t *psNRF24L01);
+void enableLockPLL(nRF24L01_struct_t *psNRF24L01);
+void diableLockPLL(nRF24L01_struct_t *psNRF24L01);
+
+void setRFpower(nRF24L01_struct_t *psNRF24L01, powerRF_t power);
+void setDataRate(nRF24L01_struct_t *psNRF24L01, dataRate_t rate);
+
+/* Status */
+uint8_t getStatusFullTxFIFO(nRF24L01_struct_t *psNRF24L01); //TODO: to tests
+uint8_t getPipeStatusRxFIFO(nRF24L01_struct_t *psNRF24L01);
+
+/* Transmit observe */
+uint8_t lostPacketsCount(nRF24L01_struct_t *psNRF24L01); //TODO: to tests
+uint8_t retrPacketsCount(nRF24L01_struct_t *psNRF24L01); //TODO: to tests
+void clearlostPacketsCount(nRF24L01_struct_t *psNRF24L01);
+/* RPD - for RF test use only */
+uint8_t checkRPD(nRF24L01_struct_t *psNRF24L01);
+
+/* Receive Address data pipe */
+uint8_t setReceivePipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t pipe, uint8_t *addr, size_t addrBufSize);
+
+/* Transmit address data pipe */
+uint8_t setTransmitPipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t *addrBuf, size_t addrBufSize);
+
+/* Payload width of each pipes */
+uint8_t getRxPayloadWidth(nRF24L01_struct_t *psNRF24L01, uint8_t pipe);
+uint8_t setRxPayloadWidth(nRF24L01_struct_t *psNRF24L01, uint8_t pipe, uint8_t width);
+
+/* TX and RX FIFO */
+uint8_t getRxStatusFIFO(nRF24L01_struct_t *psNRF24L01);
+uint8_t getTxStatusFIFO(nRF24L01_struct_t *psNRF24L01);
+uint8_t getTxReuse(nRF24L01_struct_t *psNRF24L01); //TODO: to tests
+
+/* DYNPD */
+uint8_t enableDynamicPayloadLengthPipe(nRF24L01_struct_t *psNRF24L01, uint8_t pipe);
+uint8_t disableDynamicPayloadLengthPipe(nRF24L01_struct_t *psNRF24L01, uint8_t pipe);
+
+/* Feature */
+void enableDynamicPayloadLength(nRF24L01_struct_t *psNRF24L01);
+void disableDynamicPayloadLength(nRF24L01_struct_t *psNRF24L01);
+
+void enableAckPayload(nRF24L01_struct_t *psNRF24L01);
+void disableAckPayload(nRF24L01_struct_t *psNRF24L01);
+
+void enableNoAckCommand(nRF24L01_struct_t *psNRF24L01); //TODO: to tests
+
+
 /* Read/Write functions */
 uint8_t readReg(nRF24L01_struct_t *psNRF24L01, uint8_t addr);
 void writeReg(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t val);

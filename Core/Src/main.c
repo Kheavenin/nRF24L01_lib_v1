@@ -27,7 +27,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "nRF24L01.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,7 +47,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+nRF24L01_struct_t *psRF = NULL;
+uint8_t readTab[16];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -91,10 +92,19 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
-  MX_SPI4_Init();
   MX_TIM1_Init();
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
 
+	nRF24L01_struct_t sRF;
+	psRF = &sRF;
+	nRF_Init(psRF, &hspi1, &htim1, SPI1_CSN_GPIO_Port, SPI1_CSN_Pin, nRF_CE_GPIO_Port, nRF_CE_Pin);
+	uint8_t read = getStatus(&sRF);
+	pwrUp(psRF);
+	read = readReg(psRF, CONFIG);
+	read = readReg(psRF, EN_AA);
+	read = readReg(psRF, EN_RXADDR);
+	read = readReg(psRF, SETUP_RETR);
   /* USER CODE END 2 */
  
  
@@ -103,6 +113,16 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+		read = readReg(psRF, CONFIG);
+		writeReg(psRF, CONFIG, 0x0F);
+		read = readReg(psRF, CONFIG);
+		read = readReg(psRF, EN_AA);
+		read = readReg(psRF, EN_RXADDR);
+		read = readReg(psRF, SETUP_AW);
+		read = readReg(&sRF, SETUP_RETR);
+		read = readReg(psRF, RF_CH);
+		read = readReg(psRF, RF_SETUP);
+		read = readReg(psRF, OBSERVE_TX);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
