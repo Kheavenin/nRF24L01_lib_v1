@@ -49,6 +49,7 @@
 /* USER CODE BEGIN PV */
 nRF24L01_struct_t *psRF = NULL;
 uint8_t readTab[16];
+uint8_t writeTab[5] = { 0xE0, 0xE0, 0xE0, 0xE0, 0xE0 };
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -123,6 +124,10 @@ int main(void)
 		read = readReg(psRF, RF_CH);
 		read = readReg(psRF, RF_SETUP);
 		read = readReg(psRF, OBSERVE_TX);
+		writeRegExt(psRF, TX_ADDR, writeTab, 5);
+		writeRegExt(psRF, RX_ADDR_P1, writeTab, 5);
+		readRegExt(psRF, TX_ADDR, readTab, 5);
+		readRegExt(psRF, RX_ADDR_P1, readTab, 5);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
