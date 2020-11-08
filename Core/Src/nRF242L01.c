@@ -303,7 +303,7 @@ void pwrDown(nRF24L01_struct_t *psNRF24L01) {
 	writeReg(psNRF24L01, CONFIG, tmp);
 }
 
-/* Switch to RX/TX mode or Standby */
+/* Switch to RX/TX mode or Standby-I */
 void modeRX(nRF24L01_struct_t *psNRF24L01) {
 	if (!readBit(psNRF24L01, CONFIG, bit1)) { //Check state of module
 		pwrUp(psNRF24L01);
@@ -341,8 +341,69 @@ void modeStandby(nRF24L01_struct_t *psNRF24L01) {
 	resetBit(psNRF24L01, CONFIG, bit0);
 }
 
+/* Interrupts functions */
+void enableRXinterrupt(nRF24L01_struct_t *psNRF24L01) {
+	setBit(psNRF24L01, CONFIG, bit6);
+	psNRF24L01->settings_struct.enableRxIrq = 1;
+}
+void disableRXinterrupt(nRF24L01_struct_t *psNRF24L01) {
+	resetBit(psNRF24L01, CONFIG, bit6); //disable RX_IRQ in Config register
+	psNRF24L01->settings_struct.enableRxIrq = 0;
+}
+void enableTXinterrupt(nRF24L01_struct_t *psNRF24L01) {
+	setBit(psNRF24L01, CONFIG, bit5);
+	psNRF24L01->settings_struct.enableTxIrq = 1;
+}
+void disableTXinterrupt(nRF24L01_struct_t *psNRF24L01) {
+	resetBit(psNRF24L01, CONFIG, bit5);
+	psNRF24L01->settings_struct.enableTxIrq = 0;
+}
+void enableMaxRTinterrupt(nRF24L01_struct_t *psNRF24L01) {
+	setBit(psNRF24L01, CONFIG, bit4);
+	psNRF24L01->settings_struct.enableMaxRtIrq = 1;
+}
+void disableMaxRTinterrupt(nRF24L01_struct_t *psNRF24L01) {
+	resetBit(psNRF24L01, CONFIG, bit4);
+	psNRF24L01->settings_struct.enableMaxRtIrq = 0;
+}
+
+/* CRC functions */
+void enableCRC(nRF24L01_struct_t *psNRF24L01) {
+	setBit(psNRF24L01, CONFIG, bit3);
+	psNRF24L01->settings_struct.enableCRC = 1;
+}
+void disableCRC(nRF24L01_struct_t *psNRF24L01) {
+	resetBit(psNRF24L01, CONFIG, bit3);
+	psNRF24L01->settings_struct.enableCRC = 0;
+}
+void setCRC(nRF24L01_struct_t *psNRF24L01, widthCRC_t w) {
+if (w) {
+	setBit(psNRF24L01, CONFIG, bit2);
+	psNRF24L01->settings_struct.codingCRC = 1;
+} else {
+	resetBit(psNRF24L01, CONFIG, bit2);
+	psNRF24L01->settings_struct.codingCRC = 0;
+}
+}
 
 
+/* RX addresses */
+uint8_t enableRxAddr(nRF24L01_struct_t *psNRF24L01, uint8_t pipe) {
+	if (checkPipe(pipe)) {
+		setBit(psNRF24L01, EN_RXADDR, pipe);
+		psNRF24L01->settings_struct.pipeEn |= (1 << pipe);
+		return 1;
+	}
+	return 0;
+}
+uint8_t disableRxAddr(nRF24L01_struct_t *psNRF24L01, uint8_t pipe) {
+	if (checkPipe(pipe)) {
+		resetBit(psNRF24L01, EN_RXADDR, pipe);
+		psNRF24L01->settings_struct.pipeEn |= (0 << pipe);
+		return 1;
+	}
+	return 0;
+}
 
 
 /* Transmit address data pipe */

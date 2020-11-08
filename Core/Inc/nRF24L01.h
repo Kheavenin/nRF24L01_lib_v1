@@ -339,6 +339,9 @@ uint8_t flushRx(nRF24L01_struct_t *psNRF24L01);
 void reuseTxPayload(nRF24L01_struct_t *psNRF24L01);
 uint8_t getStatus(nRF24L01_struct_t *psNRF24L01);
 
+/* Payload */
+uint8_t sendPayload(nRF24L01_struct_t *psNRF24L01, uint8_t *buf, size_t bufSize);
+uint8_t checkReceivedPayload(nRF24L01_struct_t *psNRF24L01, uint8_t pipe);
 
 /* Power control */
 void pwrUp(nRF24L01_struct_t *psNRF24L01);
@@ -349,28 +352,13 @@ void modeRX(nRF24L01_struct_t *psNRF24L01);
 void modeTX(nRF24L01_struct_t *psNRF24L01);
 void modeStandby(nRF24L01_struct_t *psNRF24L01);
 
-/* Payload */
-uint8_t sendPayload(nRF24L01_struct_t *psNRF24L01, uint8_t *buf, size_t bufSize);
-uint8_t checkReceivedPayload(nRF24L01_struct_t *psNRF24L01, uint8_t pipe);
-
 /* Interrupts */
+void enableTXinterrupt(nRF24L01_struct_t *psNRF24L01); //dont mask data send interrupt
+void enableMaxRXinterrupt(nRF24L01_struct_t *psNRF24L01); //dont mask data receive interrupt
+void enableRTinterrupt(nRF24L01_struct_t *psNRF24L01); //dont mask data retransmition interrupt
 void disableTXinterrupt(nRF24L01_struct_t *psNRF24L01);    //mask data send interrupt
 void disableRXinterrupt(nRF24L01_struct_t *psNRF24L01);    //mask data receive interrupt
 void disableMaxRTinterrupt(nRF24L01_struct_t *psNRF24L01); //mask data retransmition interrupt
-
-void enableTXinterrupt(nRF24L01_struct_t *psNRF24L01); //dont mask data send interrupt
-void enableRXinterrupt(nRF24L01_struct_t *psNRF24L01); //dont mask data receive interrupt
-void enableRTinterrupt(nRF24L01_struct_t *psNRF24L01); //dont mask data retransmition interrupt
-
-void clearRX_DR(nRF24L01_struct_t *psNRF24L01); //clear irt bits in Status Register
-void clearTX_DS(nRF24L01_struct_t *psNRF24L01);
-void clearMAX_RT(nRF24L01_struct_t *psNRF24L01);
-void clearInterruptFlags(nRF24L01_struct_t *psNRF24L01);
-
-uint8_t getRX_DR(nRF24L01_struct_t *psNRF24L01);
-uint8_t getTX_DS(nRF24L01_struct_t *psNRF24L01);
-uint8_t getMAX_RT(nRF24L01_struct_t *psNRF24L01);
-uint8_t getInterruptFlags(nRF24L01_struct_t *psNRF24L01);
 
 /* CRC */
 void enableCRC(nRF24L01_struct_t *psNRF24L01);
@@ -384,6 +372,22 @@ uint8_t disableAutoAckPipe(nRF24L01_struct_t *psNRF24L01, uint8_t pipe);
 /* RX addresses */
 uint8_t enableRxAddr(nRF24L01_struct_t *psNRF24L01, uint8_t pipe);
 uint8_t disableRxAddr(nRF24L01_struct_t *psNRF24L01, uint8_t pipe);
+
+
+/* Status */
+void clearRX_DR(nRF24L01_struct_t *psNRF24L01); //clear irt bits in Status Register
+void clearTX_DS(nRF24L01_struct_t *psNRF24L01);
+void clearMAX_RT(nRF24L01_struct_t *psNRF24L01);
+void clearInterruptFlags(nRF24L01_struct_t *psNRF24L01);
+
+uint8_t getRX_DR(nRF24L01_struct_t *psNRF24L01);
+uint8_t getTX_DS(nRF24L01_struct_t *psNRF24L01);
+uint8_t getMAX_RT(nRF24L01_struct_t *psNRF24L01);
+uint8_t getInterruptFlags(nRF24L01_struct_t *psNRF24L01);
+
+
+
+
 
 /* Address Width */
 void setAddrWidth(nRF24L01_struct_t *psNRF24L01, addressWidth_t width);
