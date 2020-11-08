@@ -404,7 +404,6 @@ uint8_t getTX_DS(nRF24L01_struct_t *psNRF24L01);
 uint8_t getMAX_RT(nRF24L01_struct_t *psNRF24L01);
 uint8_t getInterruptFlags(nRF24L01_struct_t *psNRF24L01);
 
-/* Status */
 uint8_t getStatusFullTxFIFO(nRF24L01_struct_t *psNRF24L01); //TODO: to tests
 uint8_t getPipeStatusRxFIFO(nRF24L01_struct_t *psNRF24L01);
 
@@ -413,10 +412,10 @@ uint8_t lostPacketsCount(nRF24L01_struct_t *psNRF24L01); //TODO: to tests
 uint8_t retrPacketsCount(nRF24L01_struct_t *psNRF24L01); //TODO: to tests
 void clearlostPacketsCount(nRF24L01_struct_t *psNRF24L01);
 /* RPD - for RF test use only */
-uint8_t checkRPD(nRF24L01_struct_t *psNRF24L01);
+//uint8_t checkRPD(nRF24L01_struct_t *psNRF24L01);
 
 /* Receive Address data pipe */
-uint8_t setReceivePipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t pipe, uint8_t *addr, size_t addrBufSize);
+uint8_t setReceivePipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t pipe, uint8_t *addrBuf, size_t addrBufSize);
 
 /* Transmit address data pipe */
 uint8_t setTransmitPipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t *addrBuf, size_t addrBufSize);

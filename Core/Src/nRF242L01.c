@@ -467,13 +467,13 @@ uint8_t setChannel(nRF24L01_struct_t *psNRF24L01, uint8_t channel) {
 }
 /* RF setup */
 void setRFpower(nRF24L01_struct_t *psNRF24L01, powerRF_t power) {
-	 if (power > RF_PWR_0dBm && power < RF_PWR_18dBm)
-		return ERR_CODE;
-	uint8_t tmp = readReg(psNRF24L01, RF_SETUP); //
-	tmp = tmp & 0xF8;                           //0xF8 - 1111 1000B reset 3 LSB
-	tmp = tmp | (power << 1);                   //combining tmp and shifted power
-	writeReg(psNRF24L01, RF_SETUP, tmp);
-	psNRF24L01->settings_struct.powerRF = power;
+	if (power <= RF_PWR_0dBm && power >= RF_PWR_18dBm) {
+		uint8_t tmp = readReg(psNRF24L01, RF_SETUP); //
+		tmp = tmp & 0xF8;                           //0xF8 - 1111 1000B reset 3 LSB
+		tmp = tmp | (power << 1);                   //combining tmp and shifted power
+		writeReg(psNRF24L01, RF_SETUP, tmp);
+		psNRF24L01->settings_struct.powerRF = power;
+	}
 }
 void setDataRate(nRF24L01_struct_t *psNRF24L01, dataRate_t rate) {
 	uint8_t tmp = readReg(psNRF24L01, RF_SETUP); //
@@ -534,7 +534,6 @@ uint8_t getStatusFullTxFIFO(nRF24L01_struct_t *psNRF24L01) {
 	psNRF24L01->status_struct.txFull = 0;
 	return 0; //Available locations in TX FIFO
 }
-/* Brief	Check pipe number with data to read */
 uint8_t getPipeStatusRxFIFO(nRF24L01_struct_t *psNRF24L01) { //Zmieniono na kody bledow
 	uint8_t tmp = readReg(psNRF24L01, STATUS);
 	tmp &= 0x0E; //save only pipe number bits
@@ -555,6 +554,83 @@ uint8_t getPipeStatusRxFIFO(nRF24L01_struct_t *psNRF24L01) { //Zmieniono na kody
 	return ERR_CODE;
 }
 
+/* Transmit observe */
+uint8_t lostPacketsCount(nRF24L01_struct_t *psNRF24L01) {
+	uint8_t tmp = readReg(psNRF24L01, OBSERVE_TX);
+	tmp = (tmp >> 4);
+	psNRF24L01->status_struct.packetsLost = tmp;
+	return tmp;
+}
+uint8_t retrPacketsCount(nRF24L01_struct_t *psNRF24L01) {
+	uint8_t tmp = readReg(psNRF24L01, OBSERVE_TX);
+	tmp = (tmp & 0xF0);
+	psNRF24L01->status_struct.packetsRetr = tmp;
+	return tmp;
+}
+void clearlostPacketsCount(nRF24L01_struct_t *psNRF24L01) {
+	uint8_t tmp = readReg(psNRF24L01, RF_CH);	//read RF_CH
+	writeReg(psNRF24L01, RF_CH, tmp);			//clear by
+}
+
+uint8_t setReceivePipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t pipe, uint8_t *addrBuf, size_t addrBufSize)
+{
+	if (!checkPipe(pipe)) { //if checkPipe return 0 - end fun. by return 0.
+		return ERR_CODE;
+	}
+	size_t bufSize = 0x05;
+	if (pipe == 0 || pipe == 1) { //if pipe 0 or 1 check bufer width
+		switch (addrBufSize) { //check addrBufSize
+		case 3:
+			bufSize = 0x03;
+			break;
+		case 4:
+			bufSize = 0x04;
+			break;
+		case 5:
+			bufSize = 0x05;
+			break;
+		default:
+			return ERR_CODE;
+			break;
+		}
+		if (pipe == 0) { //check pipe and write addr to struct
+			uint8_t i;
+			for (i = 0; i < addrBufSize; i++) {
+				psNRF24L01->address_struct.rxAddr0[i] = addrBuf[i];
+			}
+		}
+		if (pipe == 1) {
+			uint8_t i;
+			for (i = 0; i < addrBufSize; i++) {
+				psNRF24L01->address_struct.rxAddr1[i] = addrBuf[i];
+			}
+		}
+	} else {
+		if (addrBufSize == 1)
+			bufSize = 0x01;
+		switch (pipe) { //check pipe and write addr to struct
+		case 2:
+			psNRF24L01->address_struct.rxAddr2 = *addrBuf;
+			break;
+		case 3:
+			psNRF24L01->address_struct.rxAddr3 = *addrBuf;
+			break;
+		case 4:
+			psNRF24L01->address_struct.rxAddr4 = *addrBuf;
+			break;
+		case 5:
+			psNRF24L01->address_struct.rxAddr5 = *addrBuf;
+			break;
+		default:
+			return ERR_CODE;
+			break;
+		}
+	}
+	uint8_t addr = RX_ADDR_P0 + pipe; //if pipe = 0 -> write Receive address pipe 0
+	writeRegExt(psNRF24L01, addr, addrBuf, bufSize);
+
+	return OK_CODE;
+}
 
 /* Transmit address data pipe */
 uint8_t setTransmitPipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t *addrBuf, size_t addrBufSize) {
