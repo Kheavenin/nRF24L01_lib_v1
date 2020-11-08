@@ -456,6 +456,35 @@ uint8_t setAutoRetrelDay(nRF24L01_struct_t *psNRF24L01, uint8_t delay) {
 	return ERR_CODE;
 }
 
+/* RF channel */
+uint8_t setChannel(nRF24L01_struct_t *psNRF24L01, uint8_t channel) {
+	if (channel >= 0 && channel <= 125) {
+		writeReg(psNRF24L01, RF_CH, channel); //Maximum channel limited to 125 by hardware
+		psNRF24L01->settings_struct.channel = channel;
+		return OK_CODE;
+	}
+	return ERR_CODE;
+}
+/* RF setup */
+void setRFpower(nrfStruct_t *nrfStruct, powerRF_t power) {
+	/*
+	 if (power > RF_PWR_0dBm && power < RF_PWR_18dBm)
+	 return ERR_CODE;*/
+	uint8_t tmp = readReg(nrfStruct, RF_SETUP); //
+	tmp = tmp & 0xF8;                           //0xF8 - 1111 1000B reset 3 LSB
+	tmp = tmp | (power << 1);                   //combining tmp and shifted power
+	writeReg(nrfStruct, RF_SETUP, tmp);
+	nrfStruct->setStruct.powerRF = power;
+}
+
+void setDataRate(nrfStruct_t *nrfStruct, dataRate_t rate) {
+	uint8_t tmp = readReg(nrfStruct, RF_SETUP); //
+	tmp = tmp & 0x06;    //0x06 = 0000 0110B - reset data rate's bits - Also this line reset PLL_LOCK and CONT_WAVE bits
+	tmp = tmp | (rate << 3);                    //combining tmp and shifted data rate
+	writeReg(nrfStruct, RF_SETUP, tmp);
+	nrfStruct->setStruct.dataRate = rate;
+}
+
 /* Transmit address data pipe */
 uint8_t setTransmitPipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t *addrBuf, size_t addrBufSize) {
 	if (((psNRF24L01->address_struct.addrWidth) + 2) != addrBufSize) {

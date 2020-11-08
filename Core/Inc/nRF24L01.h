@@ -9,7 +9,9 @@
 #define INC_NRF24L01_H_
 
 #define SPI_BLOCKING_MODE 0
+#define SPI_IT_MODE 0
 #define SPI_DMA_MODE 1
+#define ADVANCED_RF_OPT 0
 
 /**
  * Includes
@@ -17,7 +19,6 @@
 #include <stdbool.h>
 #include "main.h"
 #include "string.h"
-
 
 /**
  * Map rregisters
@@ -379,6 +380,18 @@ void setAddrWidth(nRF24L01_struct_t *psNRF24L01, addressWidth_t width);
 uint8_t setAutoRetrCount(nRF24L01_struct_t *psNRF24L01, uint8_t count);
 uint8_t setAutoRetrDelay(nRF24L01_struct_t *psNRF24L01, uint8_t delay);
 
+/* RF channel */
+uint8_t setChannel(nRF24L01_struct_t *psNRF24L01, uint8_t channel);
+
+/* RF setup */
+void setRFpower(nrfStruct_t *nrfStruct, powerRF_t power);
+void setDataRate(nrfStruct_t *nrfStruct, dataRate_t rate);
+#if ADVANCED_RF_OPT
+void enableContCarrier(nRF24L01_struct_t *psNRF24L01);
+void disableContCarrier(nRF24L01_struct_t *psNRF24L01);
+void enableLockPLL(nRF24L01_struct_t *psNRF24L01);
+void diableLockPLL(nRF24L01_struct_t *psNRF24L01);
+#endif
 
 /* Status */
 void clearRX_DR(nRF24L01_struct_t *psNRF24L01); //clear irt bits in Status Register
@@ -391,10 +404,6 @@ uint8_t getTX_DS(nRF24L01_struct_t *psNRF24L01);
 uint8_t getMAX_RT(nRF24L01_struct_t *psNRF24L01);
 uint8_t getInterruptFlags(nRF24L01_struct_t *psNRF24L01);
 
-
-
-
-
 /* Address Width */
 void setAddrWidth(nRF24L01_struct_t *psNRF24L01, addressWidth_t width);
 
@@ -405,17 +414,6 @@ uint8_t setAutoRetrDelay(nRF24L01_struct_t *psNRF24L01, uint8_t delay);
 /* RF channel */
 uint8_t setChannel(nRF24L01_struct_t *psNRF24L01, uint8_t channel);
 
-/* RF setup */
-/*
- * @Brief enableContCarrier and enableLockPLL should be use only to RF test
- */
-void enableContCarrier(nRF24L01_struct_t *psNRF24L01);
-void disableContCarrier(nRF24L01_struct_t *psNRF24L01);
-void enableLockPLL(nRF24L01_struct_t *psNRF24L01);
-void diableLockPLL(nRF24L01_struct_t *psNRF24L01);
-
-void setRFpower(nRF24L01_struct_t *psNRF24L01, powerRF_t power);
-void setDataRate(nRF24L01_struct_t *psNRF24L01, dataRate_t rate);
 
 /* Status */
 uint8_t getStatusFullTxFIFO(nRF24L01_struct_t *psNRF24L01); //TODO: to tests
