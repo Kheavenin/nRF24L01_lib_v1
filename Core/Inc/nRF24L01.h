@@ -404,17 +404,6 @@ uint8_t getTX_DS(nRF24L01_struct_t *psNRF24L01);
 uint8_t getMAX_RT(nRF24L01_struct_t *psNRF24L01);
 uint8_t getInterruptFlags(nRF24L01_struct_t *psNRF24L01);
 
-/* Address Width */
-void setAddrWidth(nRF24L01_struct_t *psNRF24L01, addressWidth_t width);
-
-/* Setup retransmission */
-uint8_t setAutoRetrCount(nRF24L01_struct_t *psNRF24L01, uint8_t count);
-uint8_t setAutoRetrDelay(nRF24L01_struct_t *psNRF24L01, uint8_t delay);
-
-/* RF channel */
-uint8_t setChannel(nRF24L01_struct_t *psNRF24L01, uint8_t channel);
-
-
 /* Status */
 uint8_t getStatusFullTxFIFO(nRF24L01_struct_t *psNRF24L01); //TODO: to tests
 uint8_t getPipeStatusRxFIFO(nRF24L01_struct_t *psNRF24L01);
