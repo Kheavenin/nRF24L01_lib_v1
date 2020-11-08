@@ -303,13 +303,9 @@ void pwrDown(nRF24L01_struct_t *psNRF24L01) {
 	writeReg(psNRF24L01, CONFIG, tmp);
 }
 
-/* To turn off RX/TX state of module use mode Standby */
-/**
- * @Brief	Switch radio module to Receiver (PRX) mode
- * @Retval	None
- */
-/*
+/* Switch to RX/TX mode or Standby */
 void modeRX(nRF24L01_struct_t *psNRF24L01) {
+	if (!readBit(psNRF24L01, CONFIG, bit1)) { //Check state of module
 		pwrUp(psNRF24L01);
 		delayUs(psNRF24L01, 1500); //wait 1.5ms fo nRF24L01+ stand up
 	}
@@ -340,8 +336,14 @@ void modeTX(nRF24L01_struct_t *psNRF24L01) {
 	resetBit(psNRF24L01, CONFIG, bit0);
 	delayUs(psNRF24L01, RX_TX_SETTING_TIME);
 }
+void modeStandby(nRF24L01_struct_t *psNRF24L01) {
+	ceLow(psNRF24L01);
+	resetBit(psNRF24L01, CONFIG, bit0);
+}
 
- */
+
+
+
 
 /* Transmit address data pipe */
 uint8_t setTransmitPipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t *addrBuf, size_t addrBufSize) {
@@ -593,7 +595,7 @@ static void nRF24L01_buffers_Init(nRF24L01_struct_t *psNRF24L01) {
 /**
  * @
  */
-/* Micro sencods delay - necessary to SPI transmittion  */
+/* Micro sencods delay - necessary to SPI transmittion in blocking mode and count time of CE states  */
 void delayUs(nRF24L01_struct_t *psNRF24L01, uint16_t time) {
 __HAL_TIM_SET_COUNTER((psNRF24L01->hardware_struct.nRFtim), 0); //Set star value as 0
 while (__HAL_TIM_GET_COUNTER(psNRF24L01->hardware_struct.nRFtim) < time)
