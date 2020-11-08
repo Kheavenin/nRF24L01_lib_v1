@@ -365,13 +365,19 @@ void enableCRC(nRF24L01_struct_t *psNRF24L01);
 void setCRC(nRF24L01_struct_t *psNRF24L01, widthCRC_t w);
 
 /* Auto ACK */
-uint8_t checkPipe(uint8_t pipe);
 uint8_t enableAutoAckPipe(nRF24L01_struct_t *psNRF24L01, uint8_t pipe);
 uint8_t disableAutoAckPipe(nRF24L01_struct_t *psNRF24L01, uint8_t pipe);
 
 /* RX addresses */
 uint8_t enableRxAddr(nRF24L01_struct_t *psNRF24L01, uint8_t pipe);
 uint8_t disableRxAddr(nRF24L01_struct_t *psNRF24L01, uint8_t pipe);
+
+/* Address Width */
+void setAddrWidth(nRF24L01_struct_t *psNRF24L01, addressWidth_t width);
+
+/* Setup retransmission */
+uint8_t setAutoRetrCount(nRF24L01_struct_t *psNRF24L01, uint8_t count);
+uint8_t setAutoRetrDelay(nRF24L01_struct_t *psNRF24L01, uint8_t delay);
 
 
 /* Status */

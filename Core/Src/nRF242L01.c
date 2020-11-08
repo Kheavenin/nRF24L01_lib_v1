@@ -23,6 +23,7 @@ static void nRF24L01_buffers_Init(nRF24L01_struct_t *psNRF24L01);
  * @
  */
 void delayUs(nRF24L01_struct_t *psNRF24L01, uint16_t time);
+static uint8_t checkPipe(uint8_t pipe);
 static void csnLow(nRF24L01_struct_t *psNRF24L01);
 static void csnHigh(nRF24L01_struct_t *psNRF24L01);
 static void ceLow(nRF24L01_struct_t *psNRF24L01);
@@ -377,15 +378,32 @@ void disableCRC(nRF24L01_struct_t *psNRF24L01) {
 	psNRF24L01->settings_struct.enableCRC = 0;
 }
 void setCRC(nRF24L01_struct_t *psNRF24L01, widthCRC_t w) {
-if (w) {
-	setBit(psNRF24L01, CONFIG, bit2);
-	psNRF24L01->settings_struct.codingCRC = 1;
-} else {
-	resetBit(psNRF24L01, CONFIG, bit2);
-	psNRF24L01->settings_struct.codingCRC = 0;
-}
+	if (w) {
+		setBit(psNRF24L01, CONFIG, bit2);
+		psNRF24L01->settings_struct.codingCRC = 1;
+	} else {
+		resetBit(psNRF24L01, CONFIG, bit2);
+		psNRF24L01->settings_struct.codingCRC = 0;
+	}
 }
 
+/* Auto ACK */
+uint8_t enableAutoAckPipe(nRF24L01_struct_t *psNRF24L01, uint8_t pipe) {
+	if (checkPipe(pipe)) {
+		setBit(psNRF24L01, EN_AA, pipe);
+		psNRF24L01->settings_struct.pipeACK |= (1 << pipe);
+		return 1;
+	}
+	return 0;
+}
+uint8_t disableAutoAckPipe(nRF24L01_struct_t *psNRF24L01, uint8_t pipe) {
+	if (checkPipe(pipe)) {
+		resetBit(psNRF24L01, EN_AA, pipe);
+		psNRF24L01->settings_struct.pipeACK |= 0 << pipe;
+		return 1;
+	}
+	return 0;
+}
 
 /* RX addresses */
 uint8_t enableRxAddr(nRF24L01_struct_t *psNRF24L01, uint8_t pipe) {
@@ -405,6 +423,38 @@ uint8_t disableRxAddr(nRF24L01_struct_t *psNRF24L01, uint8_t pipe) {
 	return 0;
 }
 
+/* Address Width */
+void setAddrWidth(nRF24L01_struct_t *psNRF24L01, addressWidth_t width) {
+	writeReg(psNRF24L01, SETUP_AW, width);
+	psNRF24L01->address_struct.addrWidth = width;
+}
+
+/* Setup retransmission */
+uint8_t setAutoRetrCount(nRF24L01_struct_t *psNRF24L01, uint8_t count) {
+	if (count >= 0x00 && count <= 0x0F) {                                                 //check count val
+		uint8_t tmp = readReg(psNRF24L01, SETUP_RETR); //read reg. val
+		tmp = tmp & 0xF0;                             // reset LSB and save MSB
+		tmp |= count;                                 //add tmp and count
+		writeReg(psNRF24L01, SETUP_RETR, tmp);         //write to SETUP_RETR
+		psNRF24L01->settings_struct.ARC = count;
+		return OK_CODE;
+	}
+	return ERR_CODE;
+}
+uint8_t setAutoRetrelDay(nRF24L01_struct_t *psNRF24L01, uint8_t delay) {
+	if (delay > 0x0F) {                       //if delay in MSB format
+		delay = delay >> 4; //shift to LSB format
+	}
+	if (delay >= 0x00 && delay <= 0x0F) {
+		uint8_t tmp = readReg(psNRF24L01, SETUP_RETR);
+		tmp = tmp & 0x0F;    //save LSB, reset MSB
+		tmp |= (delay << 4); //add tmp and delay
+		writeReg(psNRF24L01, SETUP_RETR, tmp);
+		psNRF24L01->settings_struct.ARD = delay;
+		return OK_CODE;
+	}
+	return ERR_CODE;
+}
 
 /* Transmit address data pipe */
 uint8_t setTransmitPipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t *addrBuf, size_t addrBufSize) {
@@ -661,6 +711,12 @@ void delayUs(nRF24L01_struct_t *psNRF24L01, uint16_t time) {
 __HAL_TIM_SET_COUNTER((psNRF24L01->hardware_struct.nRFtim), 0); //Set star value as 0
 while (__HAL_TIM_GET_COUNTER(psNRF24L01->hardware_struct.nRFtim) < time)
 	; //
+}
+
+static uint8_t checkPipe(uint8_t pipe) {
+	if (pipe >= 0 && pipe <= 5) //check correct pipe number
+		return 1;
+	return 0;
 }
 
 /* CE snd CSN control funtions's */
