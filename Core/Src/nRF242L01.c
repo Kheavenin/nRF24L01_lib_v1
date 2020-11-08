@@ -265,7 +265,7 @@ uint8_t sendPayload(nRF24L01_struct_t *psNRF24L01, uint8_t *buf, size_t bufSize)
 		flushTx(psNRF24L01);
 	}
 	if (getTX_DS(psNRF24L01)) {
-		clearTX_DS(psNRF24L01);
+		resetTX_DS(psNRF24L01);
 	}
 	if (writeTxPayload(psNRF24L01, buf, bufSize)) {
 		ceHigh(psNRF24L01);
@@ -280,7 +280,7 @@ uint8_t sendPayload(nRF24L01_struct_t *psNRF24L01, uint8_t *buf, size_t bufSize)
 uint8_t checkReceivedPayload(nRF24L01_struct_t *psNRF24L01, uint8_t pipe) {
 	if (getPipeStatusRxFIFO(psNRF24L01) == pipe) {
 		if (getRX_DR(psNRF24L01)) {
-			clearRX_DR(psNRF24L01);
+			resetRX_DR(psNRF24L01);
 		}
 		return 1;
 	}
@@ -313,9 +313,9 @@ void modeRX(nRF24L01_struct_t *psNRF24L01) {
 	flushRx(psNRF24L01); //clear (flush) RX FIFO buffer
 	flushTx(psNRF24L01); //clear (flush) TX FIFO buffer
 
-	clearRX_DR(psNRF24L01); //clear interrupts flags
-	clearTX_DS(psNRF24L01);
-	clearMAX_RT(psNRF24L01);
+	resetRX_DR(psNRF24L01); //clear interrupts flags
+	resetTX_DS(psNRF24L01);
+	resetMAX_RT(psNRF24L01);
 	//nRF in Standby-I
 	ceHigh(psNRF24L01); //set high on CE line
 	setBit(psNRF24L01, CONFIG, bit0);
@@ -329,9 +329,9 @@ void modeTX(nRF24L01_struct_t *psNRF24L01) {
 	flushRx(psNRF24L01); //clear (flush) RX FIFO buffer
 	flushTx(psNRF24L01); //clear (flush) TX FIFO buffer
 
-	clearRX_DR(psNRF24L01); //clear interrupts flags
-	clearTX_DS(psNRF24L01);
-	clearMAX_RT(psNRF24L01);
+	resetRX_DR(psNRF24L01); //clear interrupts flags
+	resetTX_DS(psNRF24L01);
+	resetMAX_RT(psNRF24L01);
 
 	ceHigh(psNRF24L01);
 	resetBit(psNRF24L01, CONFIG, bit0);
@@ -466,24 +466,68 @@ uint8_t setChannel(nRF24L01_struct_t *psNRF24L01, uint8_t channel) {
 	return ERR_CODE;
 }
 /* RF setup */
-void setRFpower(nrfStruct_t *nrfStruct, powerRF_t power) {
-	/*
+void setRFpower(nRF24L01_struct_t *psNRF24L01, powerRF_t power) {
 	 if (power > RF_PWR_0dBm && power < RF_PWR_18dBm)
-	 return ERR_CODE;*/
-	uint8_t tmp = readReg(nrfStruct, RF_SETUP); //
+		return ERR_CODE;
+	uint8_t tmp = readReg(psNRF24L01, RF_SETUP); //
 	tmp = tmp & 0xF8;                           //0xF8 - 1111 1000B reset 3 LSB
 	tmp = tmp | (power << 1);                   //combining tmp and shifted power
-	writeReg(nrfStruct, RF_SETUP, tmp);
-	nrfStruct->setStruct.powerRF = power;
+	writeReg(psNRF24L01, RF_SETUP, tmp);
+	psNRF24L01->settings_struct.powerRF = power;
 }
-
-void setDataRate(nrfStruct_t *nrfStruct, dataRate_t rate) {
-	uint8_t tmp = readReg(nrfStruct, RF_SETUP); //
+void setDataRate(nRF24L01_struct_t *psNRF24L01, dataRate_t rate) {
+	uint8_t tmp = readReg(psNRF24L01, RF_SETUP); //
 	tmp = tmp & 0x06;    //0x06 = 0000 0110B - reset data rate's bits - Also this line reset PLL_LOCK and CONT_WAVE bits
 	tmp = tmp | (rate << 3);                    //combining tmp and shifted data rate
-	writeReg(nrfStruct, RF_SETUP, tmp);
-	nrfStruct->setStruct.dataRate = rate;
+	writeReg(psNRF24L01, RF_SETUP, tmp);
+	psNRF24L01->settings_struct.dataRate = rate;
 }
+#if ADVANCED_RF_OPT
+#endif
+/* Status register */
+void resetRX_DR(nRF24L01_struct_t *psNRF24L01) { //clear irt bits in Status Register
+	setBit(psNRF24L01, STATUS, bit6);
+	psNRF24L01->status_struct.dataReadIrq = 0;
+}
+void resetTX_DS(nRF24L01_struct_t *psNRF24L01) {
+	setBit(psNRF24L01, STATUS, bit5);
+	psNRF24L01->status_struct.dataSendIrq = 0;
+}
+void resetMAX_RT(nRF24L01_struct_t *psNRF24L01) {
+	setBit(psNRF24L01, STATUS, bit4);
+	psNRF24L01->status_struct.maxRetr = 0;
+}
+void resetInterruptFlags(nRF24L01_struct_t *psNRF24L01) {
+	writeReg(psNRF24L01, STATUS, 0x70);
+	psNRF24L01->status_struct.dataReadIrq = 0;
+	psNRF24L01->status_struct.dataSendIrq = 0;
+	psNRF24L01->status_struct.maxRetr = 0;
+}
+uint8_t getRX_DR(nRF24L01_struct_t *psNRF24L01) {
+	psNRF24L01->status_struct.dataReadIrq = readBit(psNRF24L01, STATUS, bit6);
+	return (psNRF24L01->status_struct.dataReadIrq);
+}
+uint8_t getTX_DS(nRF24L01_struct_t *psNRF24L01) {
+	psNRF24L01->status_struct.dataSendIrq = readBit(psNRF24L01, STATUS, bit5);
+	return (psNRF24L01->status_struct.dataSendIrq);
+}
+uint8_t getMAX_RT(nRF24L01_struct_t *psNRF24L01) {
+	psNRF24L01->status_struct.maxRetr = readBit(psNRF24L01, STATUS, bit4);
+	return (psNRF24L01->status_struct.maxRetr);
+}
+uint8_t getInterruptFlags(nRF24L01_struct_t *psNRF24L01) {
+	uint8_t tmp = readReg(psNRF24L01, STATUS);
+	tmp = 4 >> (tmp & 0x70);
+	if (tmp & 0x01)
+		psNRF24L01->status_struct.maxRetr = 1;
+	if (tmp & 0x02)
+		psNRF24L01->status_struct.dataSendIrq = 1;
+	if (tmp & 0x04)
+		psNRF24L01->status_struct.dataReadIrq = 1;
+	return tmp;
+}
+
+
 
 /* Transmit address data pipe */
 uint8_t setTransmitPipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t *addrBuf, size_t addrBufSize) {

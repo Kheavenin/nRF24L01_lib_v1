@@ -384,8 +384,8 @@ uint8_t setAutoRetrDelay(nRF24L01_struct_t *psNRF24L01, uint8_t delay);
 uint8_t setChannel(nRF24L01_struct_t *psNRF24L01, uint8_t channel);
 
 /* RF setup */
-void setRFpower(nrfStruct_t *nrfStruct, powerRF_t power);
-void setDataRate(nrfStruct_t *nrfStruct, dataRate_t rate);
+void setRFpower(nRF24L01_struct_t *psNRF24L01, powerRF_t power);
+void setDataRate(nRF24L01_struct_t *psNRF24L01, dataRate_t rate);
 #if ADVANCED_RF_OPT
 void enableContCarrier(nRF24L01_struct_t *psNRF24L01);
 void disableContCarrier(nRF24L01_struct_t *psNRF24L01);
@@ -394,10 +394,10 @@ void diableLockPLL(nRF24L01_struct_t *psNRF24L01);
 #endif
 
 /* Status */
-void clearRX_DR(nRF24L01_struct_t *psNRF24L01); //clear irt bits in Status Register
-void clearTX_DS(nRF24L01_struct_t *psNRF24L01);
-void clearMAX_RT(nRF24L01_struct_t *psNRF24L01);
-void clearInterruptFlags(nRF24L01_struct_t *psNRF24L01);
+void resetRX_DR(nRF24L01_struct_t *psNRF24L01); //clear irt bits in Status Register
+void resetTX_DS(nRF24L01_struct_t *psNRF24L01);
+void resetMAX_RT(nRF24L01_struct_t *psNRF24L01);
+void resetInterruptFlags(nRF24L01_struct_t *psNRF24L01);
 
 uint8_t getRX_DR(nRF24L01_struct_t *psNRF24L01);
 uint8_t getTX_DS(nRF24L01_struct_t *psNRF24L01);

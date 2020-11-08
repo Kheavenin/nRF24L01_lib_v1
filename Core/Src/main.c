@@ -115,7 +115,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		delayUs(psRF, 100);
+		//delayUs(psRF, 100);
 		read = readReg(psRF, CONFIG);
 		writeReg(psRF, CONFIG, 0x0F);
 		read = readReg(psRF, CONFIG);
