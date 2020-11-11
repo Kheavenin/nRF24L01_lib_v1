@@ -288,7 +288,15 @@ uint8_t flushTx(nRF24L01_struct_t *psNRF24L01) {
 	uint8_t command = FLUSH_TX; //set command mask
 
 	csnLow(psNRF24L01);
+#if SPI_BLOCKING_MODE
+	 HAL_SPI_Transmit(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command), SPI_TIMEOUT);
+#endif
+#if SPI_IT_MODE
+	 HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
+#endif
+#if SPI_DMA_MODE
 	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command)); //Flush TX
+#endif
 	csnHigh(psNRF24L01);
 
 	if (!readBit(psNRF24L01, FIFO_STATUS, bit4)) { //check FIFO status
