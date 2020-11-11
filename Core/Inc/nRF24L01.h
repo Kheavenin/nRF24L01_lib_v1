@@ -2,7 +2,13 @@
  * nRF24L01.h
  *
  *  Created on: 1 lis 2020
- *      Author: Khevenin
+ *  @Author: Khevenin
+ *  @Name: nRF24L01 library
+ *  @Version: v2.00
+ *
+ *  Reafactored structures and functions.
+ *  Implemented SPI interrupts and DMA services.
+ *
  */
 
 #ifndef INC_NRF24L01_H_
@@ -24,7 +30,7 @@
  * Map rregisters
  **/
 
-/** Control registers */
+/* Control registers */
 #define CONFIG 0x00     //PWR, role, interrupts
 #define EN_AA 0x01      //enable auto ack
 #define EN_RXADDR 0x02  //enable RX addresses
@@ -36,7 +42,7 @@
 #define OBSERVE_TX 0x08 //Transmit observe register
 #define RPD 0x09        //Received Power Detector
 
-/** Address registers */
+/* Address registers */
 #define RX_ADDR_P0 0x0A //Received address data pipe 0
 #define RX_ADDR_P1 0x0B //Received address data pipe 1
 #define RX_ADDR_P2 0x0C //Received address data pipe 2
@@ -46,7 +52,7 @@
 
 #define TX_ADDR 0x10 //Transmit addresses
 
-/** Size of payload */
+/* Size of payload */
 #define RX_PW_P0 0x11 //Number of bytes in RX payload in data pipe 0 - max 32 bytes
 #define RX_PW_P1 0x12 //Number of bytes in RX payload in data pipe 1 - max 32 bytes
 #define RX_PW_P2 0x13 //Number of bytes in RX payload in data pipe 2 - max 32 bytes
@@ -54,7 +60,7 @@
 #define RX_PW_P4 0x15 //Number of bytes in RX payload in data pipe 4 - max 32 bytes
 #define RX_PW_P5 0x16 //Number of bytes in RX payload in data pipe 5 - max 32 bytes
 
-/** Another feature */
+/* Another feature */
 #define FIFO_STATUS 0x17 //FIFO status register
 #define DYNPD 0x1C       //Enable dynamic payload lenght
 #define FEATURE 0x1D     // Feature register

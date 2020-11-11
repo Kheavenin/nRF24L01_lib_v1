@@ -1,8 +1,14 @@
 /*
- * nRF242L01.c
+ * nRF24L01.h
  *
  *  Created on: 1 lis 2020
- *      Author: Khevenin
+ *  @Author: Khevenin
+ *  @Name: nRF24L01 library
+ *  @Version: v2.00
+ *
+ *  Reafactored structures and functions.
+ *  Implemented SPI interrupts and DMA services.
+ *
  */
 
 #include "nRF24L01.h"
@@ -1036,29 +1042,3 @@ static void setBit(nRF24L01_struct_t *psNRF24L01, uint8_t addr, bitNum_t bit) {
 	tmp |= (1 << bit);
 	writeReg(psNRF24L01, addr, tmp);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
