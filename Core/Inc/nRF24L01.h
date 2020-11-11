@@ -192,9 +192,7 @@
 #define CE_HIGH_TIME 11
 #define RX_TX_SETTING_TIME 140
 
-/**
- * @TX and RX buffers sizes
- */
+/* TX and RX buffers sizes */
 #define TX_BUFFER_SIZE 32
 #define RX_BUFFER_SIZE 32
 

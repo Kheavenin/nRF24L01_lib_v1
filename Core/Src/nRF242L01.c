@@ -61,17 +61,19 @@ uint8_t readReg(nRF24L01_struct_t *psNRF24L01, uint8_t addr) {
 	uint8_t data;
 
 	csnLow(psNRF24L01);
-	/*
+#if SPI_BLOCKING_MODE
 	 HAL_SPI_Transmit((psNRF24L01->hardware_struct.nRFspi), &command, sizeof(command), SPI_TIMEOUT);
-	 HAL_Delay(1);
+	 delayUs(psNRF24L01, 50);
 	 HAL_SPI_Receive((psNRF24L01->hardware_struct.nRFspi), &data, 1, SPI_TIMEOUT);
-
+#endif
+#if SPI_IT_MODE
 	 HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
 	 HAL_SPI_Receive_IT(psNRF24L01->hardware_struct.nRFspi, &data, sizeof(data));
-	 */
+#endif
+#if SPI_DMA_MODE
 	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
 	HAL_SPI_Receive_DMA(psNRF24L01->hardware_struct.nRFspi, &data, 1);
-
+#endif
 	csnHigh(psNRF24L01);
 
 	return data;
