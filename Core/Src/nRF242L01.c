@@ -163,8 +163,19 @@ uint8_t readRxPayload(nRF24L01_struct_t *psNRF24L01, uint8_t *pBuf, size_t bufSi
 	uint8_t command = R_RX_PAYLOAD; //set command mask
 
 	csnLow(psNRF24L01);
+#if SPI_BLOCKING_MODE
+	 HAL_SPI_Transmit(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command), SPI_TIMEOUT);
+	 delayUs(psNRF24L01, 50);
+	 HAL_SPI_Receive(psNRF24L01->hardware_struct.nRFspi, pBuf, bufSize, SPI_TIMEOUT);
+#endif
+#if SPI_IT_MODE
+	 HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
+	 HAL_SPI_Receive_IT(psNRF24L01->hardware_struct.nRFspi, pBuf, bufSize, &data, sizeof(data));
+#endif
+#if SPI_DMA_MODE
 	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));	//send command
 	HAL_SPI_Receive_DMA(psNRF24L01->hardware_struct.nRFspi, pBuf, bufSize); 				//read payload
+#endif
 	csnHigh(psNRF24L01);
 
 	return OK_CODE;
@@ -178,8 +189,19 @@ uint8_t writeTxPayload(nRF24L01_struct_t *psNRF24L01, uint8_t *pBuf, size_t bufS
 	uint8_t command = W_TX_PAYLOAD; //set command mask
 
 	csnLow(psNRF24L01);
+#if SPI_BLOCKING_MODE
+	 HAL_SPI_Transmit(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command), SPI_TIMEOUT);
+	 delayUs(psNRF24L01, 50);
+	 HAL_SPI_Transmit(psNRF24L01->hardware_struct.nRFspi, pBuf, bufSize, SPI_TIMEOUT);
+#endif
+#if SPI_IT_MODE
+	 HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
+	 HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, pBuf, bufSize);
+#endif
+#if SPI_DMA_MODE
 	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command)); //send command
 	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, pBuf, bufSize);	//write payload
+#endif
 	csnHigh(psNRF24L01);
 
 	return OK_CODE;
@@ -193,8 +215,19 @@ uint8_t writeTxPayloadAck(nRF24L01_struct_t *psNRF24L01, uint8_t *pBuf, size_t b
 	uint8_t command = W_ACK_PAYLOAD; //set command mask
 
 	csnLow(psNRF24L01);
-	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command)); 	//send command
-	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, pBuf, bufSize);				//write payload
+#if SPI_BLOCKING_MODE
+	 HAL_SPI_Transmit(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command), SPI_TIMEOUT);
+	 delayUs(psNRF24L01, 50);
+	 HAL_SPI_Transmit(psNRF24L01->hardware_struct.nRFspi, pBuf, bufSize, SPI_TIMEOUT);
+#endif
+#if SPI_IT_MODE
+	 HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
+	 HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, pBuf, bufSize);
+#endif
+#if SPI_DMA_MODE
+	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command)); //send command
+	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, pBuf, bufSize);	//write payload
+#endif
 	csnHigh(psNRF24L01);
 
 	return OK_CODE;
@@ -208,8 +241,19 @@ uint8_t writeTxPayloadNoAck(nRF24L01_struct_t *psNRF24L01, uint8_t *pBuf, size_t
 	uint8_t command = W_TX_PAYLOAD_NO_ACK; //set command mask
 
 	csnLow(psNRF24L01);
-	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));    //send command
-	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, pBuf, bufSize);		   		//write payload
+#if SPI_BLOCKING_MODE
+	 HAL_SPI_Transmit(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command), SPI_TIMEOUT);
+	 delayUs(psNRF24L01, 50);
+	 HAL_SPI_Transmit(psNRF24L01->hardware_struct.nRFspi, pBuf, bufSize, SPI_TIMEOUT);
+#endif
+#if SPI_IT_MODE
+	 HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
+	 HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, pBuf, bufSize);
+#endif
+#if SPI_DMA_MODE
+	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command)); //send command
+	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, pBuf, bufSize);	//write payload
+#endif
 	csnHigh(psNRF24L01);
 
 	return OK_CODE;
