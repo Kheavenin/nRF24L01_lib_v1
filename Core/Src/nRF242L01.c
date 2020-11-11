@@ -108,8 +108,19 @@ void readRegExt(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t *pBuf, size
 		csnLow(psNRF24L01);
 		do {
 			command = R_REGISTER | (addr + i);	//set command
+#if SPI_BLOCKING_MODE
+	 HAL_SPI_Transmit(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command), SPI_TIMEOUT);     //transmit command
+	 delayUs(psNRF24L01, 50);
+	 HAL_SPI_Transmit(psNRF24L01->hardware_struct.nRFspi, (pBuf + i), sizeof(uint8_t)), SPI_TIMEOUT);   //receive data
+#endif
+#if SPI_IT_MODE
+	 HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));		//transmit command
+	 HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, (pBuf + i), sizeof(uint8_t));		//receive data
+#endif
+#if SPI_DMA_MODE
 			HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));	//transmit command
 			HAL_SPI_Receive_DMA(psNRF24L01->hardware_struct.nRFspi, (pBuf + i), sizeof(uint8_t));	//receive data
+#endif
 			i++;
 		} while (i != bufSize);
 		csnHigh(psNRF24L01);
