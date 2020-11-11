@@ -265,8 +265,19 @@ uint8_t readDynamicPayloadWidth(nRF24L01_struct_t *psNRF24L01) {
 	uint8_t width;
 
 	csnLow(psNRF24L01);
+#if SPI_BLOCKING_MODE
+	 HAL_SPI_Transmit(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command), SPI_TIMEOUT);
+	 delayUs(psNRF24L01, 50);
+	 HAL_SPI_Receive(psNRF24L01->hardware_struct.nRFspi, &width, sizeof(width),SPI_TIMEOUT);
+#endif
+#if SPI_IT_MODE
+	 HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
+	 HAL_SPI_Receive_IT(psNRF24L01->hardware_struct.nRFspi, &width, sizeof(width));
+#endif
+#if SPI_DMA_MODE
 	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command)); //send command
 	HAL_SPI_Receive_DMA(psNRF24L01->hardware_struct.nRFspi, &width, sizeof(width)); //read payload width
+#endif
 	csnHigh(psNRF24L01);
 
 	return width;
