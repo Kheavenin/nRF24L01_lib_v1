@@ -336,19 +336,19 @@ void reuseTxPayload(nRF24L01_struct_t *psNRF24L01) {
 	uint8_t command = REUSE_TX_PL; //set command mask
 
 	csnLow(psNRF24L01);
+#if SPI_BLOCKING_MODE
+	 HAL_SPI_Transmit(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command), SPI_TIMEOUT);
+#endif
+#if SPI_IT_MODE
+	 HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));
+#endif
+#if SPI_DMA_MODE
 	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));    //send re-use last payload
+#endif
 	csnHigh(psNRF24L01);
 }
 uint8_t getStatus(nRF24L01_struct_t *psNRF24L01) {
-	uint8_t command = NOP;
-	uint8_t reg = 0;
-
-	csnLow(psNRF24L01);
-	HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));    //send get command
-	HAL_SPI_Receive_DMA(psNRF24L01->hardware_struct.nRFspi, &reg, sizeof(reg)); 			//get status
-	csnHigh(psNRF24L01);
-
-	return reg;
+	return readReg(psNRF24L01, STATUS);
 }
 
 /* Payload */
