@@ -411,12 +411,14 @@ uint8_t getPipeStatusRxFIFO(nRF24L01_struct_t *psNRF24L01);
 uint8_t lostPacketsCount(nRF24L01_struct_t *psNRF24L01); //TODO: to tests
 uint8_t retrPacketsCount(nRF24L01_struct_t *psNRF24L01); //TODO: to tests
 void clearlostPacketsCount(nRF24L01_struct_t *psNRF24L01);
+
+#if ADVANCED_RF_OPT
 /* RPD - for RF test use only */
-//uint8_t checkRPD(nRF24L01_struct_t *psNRF24L01);
+uint8_t checkRPD(nRF24L01_struct_t *psNRF24L01);
+#endif
 
 /* Receive Address data pipe */
 uint8_t setReceivePipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t pipe, uint8_t *addrBuf, size_t addrBufSize);
-
 /* Transmit address data pipe */
 uint8_t setTransmitPipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t *addrBuf, size_t addrBufSize);
 
@@ -429,14 +431,15 @@ uint8_t getRxStatusFIFO(nRF24L01_struct_t *psNRF24L01);
 uint8_t getTxStatusFIFO(nRF24L01_struct_t *psNRF24L01);
 uint8_t getTxReuse(nRF24L01_struct_t *psNRF24L01); //TODO: to tests
 
-/* DYNPD */
+/* Dynamic Payload Length */
 uint8_t enableDynamicPayloadLengthPipe(nRF24L01_struct_t *psNRF24L01, uint8_t pipe);
 uint8_t disableDynamicPayloadLengthPipe(nRF24L01_struct_t *psNRF24L01, uint8_t pipe);
 
-/* Feature */
+/* Payload with Auto Acknowladge */
 void enableDynamicPayloadLength(nRF24L01_struct_t *psNRF24L01);
 void disableDynamicPayloadLength(nRF24L01_struct_t *psNRF24L01);
 
+/* Enable W_TX_PAYLOAD_NOACK command */
 void enableAckPayload(nRF24L01_struct_t *psNRF24L01);
 void disableAckPayload(nRF24L01_struct_t *psNRF24L01);
 

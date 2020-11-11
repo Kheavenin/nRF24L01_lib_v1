@@ -95,9 +95,7 @@ void writeReg(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t val) {
 	csnHigh(psNRF24L01);
 }
 
-/*
- * @Extended read and write functions - R/W few registers
- */
+/* Extended read and write functions - R/W few registers */
 void readRegExt(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t *pBuf, size_t bufSize) {
 	if (psNRF24L01 != NULL && pBuf != NULL && bufSize > 0) {
 		uint8_t command = 0;
@@ -483,7 +481,24 @@ void setDataRate(nRF24L01_struct_t *psNRF24L01, dataRate_t rate) {
 	psNRF24L01->settings_struct.dataRate = rate;
 }
 #if ADVANCED_RF_OPT
+void enableContCarrier(nRF24L01_struct_t *psNRF24L01)
+{
+    setBit(psNRF24L01, RF_SETUP, bit7);
+}
+void disableContCarrier(nRF24L01_struct_t *psNRF24L01)
+{
+    resetBit(psNRF24L01, RF_SETUP, bit7);
+}
+void enableLockPLL(nRF24L01_struct_t *psNRF24L01)
+{
+    setBit(psNRF24L01, RF_SETUP, bit4);
+}
+void diableLockPLL(nRF24L01_struct_t *psNRF24L01)
+{
+    resetBit(psNRF24L01, RF_SETUP, bit4);
+}
 #endif
+
 /* Status register */
 void resetRX_DR(nRF24L01_struct_t *psNRF24L01) { //clear irt bits in Status Register
 	setBit(psNRF24L01, STATUS, bit6);
@@ -572,6 +587,18 @@ void clearlostPacketsCount(nRF24L01_struct_t *psNRF24L01) {
 	writeReg(psNRF24L01, RF_CH, tmp);			//clear by
 }
 
+#if ADVANCED_RF_OPT
+/* RPD - for test use only */
+uint8_t checkRPD(nRF24L01_struct_t *psNRF24L01)
+{
+    if (readReg(nrfStruct, RPD))
+        return 1;
+    else
+        return 0;
+}
+#endif
+
+/* RX pipes and TX address */
 uint8_t setReceivePipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t pipe, uint8_t *addrBuf, size_t addrBufSize)
 {
 	if (!checkPipe(pipe)) { //if checkPipe return 0 - end fun. by return 0.
@@ -631,13 +658,10 @@ uint8_t setReceivePipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t pipe, uint8
 
 	return OK_CODE;
 }
-
-/* Transmit address data pipe */
 uint8_t setTransmitPipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t *addrBuf, size_t addrBufSize) {
 	if (((psNRF24L01->address_struct.addrWidth) + 2) != addrBufSize) {
 		return ERR_CODE;
 	}
-
 	uint8_t i;
 	for (i = 0; i < addrBufSize; i++) { //write to struct
 		psNRF24L01->address_struct.txAddr[i] = addrBuf[i];
@@ -646,6 +670,16 @@ uint8_t setTransmitPipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t *addrBuf, 
 	return OK_CODE;
 }
 
+/* RX Payload width */
+uint8_t getRxPayloadWidth(nRF24L01_struct_t *psNRF24L01, uint8_t pipe) {
+	if (checkPipe(pipe)) {
+		uint8_t addr = RX_PW_P0 + pipe;
+		uint8_t tmp = readReg(psNRF24L01, addr);
+		psNRF24L01->settings_struct.pipePayLen[pipe] = tmp;
+		return tmp;
+	}
+	return ERR_CODE;
+}
 uint8_t setRxPayloadWidth(nRF24L01_struct_t *psNRF24L01, uint8_t pipe, uint8_t width) {
 	if (checkPipe(pipe)) {
 		if (width < 1 && width > 32) { //check width correct value
@@ -659,21 +693,8 @@ uint8_t setRxPayloadWidth(nRF24L01_struct_t *psNRF24L01, uint8_t pipe, uint8_t w
 	return ERR_CODE;
 }
 
-/* RX Payload width */
-uint8_t getRxPayloadWidth(nRF24L01_struct_t *psNRF24L01, uint8_t pipe) {
-	if (checkPipe(pipe)) {
-		uint8_t addr = RX_PW_P0 + pipe;
-		uint8_t tmp = readReg(psNRF24L01, addr);
-		psNRF24L01->settings_struct.pipePayLen[pipe] = tmp;
-		return tmp;
-	}
-	return ERR_CODE;
-}
-
 /* FIFO status */
-/**
- * @Brief	Return status of RX FIFO buffer by check bits in FIFO Status Register
- * */
+/* Return status of RX FIFO buffer by check bits in FIFO Status Register */
 uint8_t getRxStatusFIFO(nRF24L01_struct_t *psNRF24L01) {
 	uint8_t tmp = readReg(psNRF24L01, FIFO_STATUS);
 	if ((tmp & 0x03) == RX_FIFO_MASK_EMPTY) {
@@ -696,9 +717,7 @@ uint8_t getRxStatusFIFO(nRF24L01_struct_t *psNRF24L01) {
 	}
 	return ERR_CODE;
 }
-/**
- * @Brief	Return status of TX FIFO buffer by check bits in FIFO Status Register
- * */
+/* Return status of TX FIFO buffer by check bits in FIFO Status Register */
 uint8_t getTxStatusFIFO(nRF24L01_struct_t *psNRF24L01) {
 	uint8_t tmp = readReg(psNRF24L01, FIFO_STATUS);
 	tmp = tmp >> 4;
@@ -722,21 +741,19 @@ uint8_t getTxStatusFIFO(nRF24L01_struct_t *psNRF24L01) {
 	}
 	return ERR_CODE;
 }
-/**
- * @Brief	Checking reuse package
- * @Retval	TX_REUSE_USED mean that nRF24 module reuse to send again same package
- * 			TX_REUSE_UNUSED mena that nRF24 module doeasn't reuse to send again same package
- **/
+
+
+/* Checking reuse package */
 uint8_t getTxReuse(nRF24L01_struct_t *psNRF24L01) {
 	uint8_t tmp = readBit(psNRF24L01, FIFO_STATUS, TX_REUSE);
 	psNRF24L01->fifo_struct.txReUse = tmp;
 	if (tmp == 0x01) {
-		return TX_REUSE_USED;
+		return TX_REUSE_USED; /* TX_REUSE_USED mean that nRF24 module reuse to send again same package */
 	}
-	return TX_REUSE_UNUSED;
+	return TX_REUSE_UNUSED; /* TX_REUSE_UNUSED mena that nRF24 module doeasn't reuse to send again same package */
 }
 
-/* Dynamic Payload Lenggth */
+/* Dynamic Payload Length */
 uint8_t enableDynamicPayloadLengthPipe(nRF24L01_struct_t *psNRF24L01, uint8_t pipe) {
 	if (!checkPipe(pipe)) {
 		return ERR_CODE;
@@ -745,7 +762,6 @@ uint8_t enableDynamicPayloadLengthPipe(nRF24L01_struct_t *psNRF24L01, uint8_t pi
 	psNRF24L01->settings_struct.pipeDPL |= (1 << pipe);
 	return OK_CODE;
 }
-
 uint8_t disableDynamicPayloadLengthPipe(nRF24L01_struct_t *psNRF24L01, uint8_t pipe) {
 	if (!checkPipe(pipe)) {
 		return ERR_CODE;
@@ -754,7 +770,8 @@ uint8_t disableDynamicPayloadLengthPipe(nRF24L01_struct_t *psNRF24L01, uint8_t p
 	psNRF24L01->settings_struct.pipeDPL |= (0 << pipe);
 	return OK_CODE;
 }
-/* Feature */
+
+/* Dynamic Payload Length */
 void enableDynamicPayloadLength(nRF24L01_struct_t *psNRF24L01) {
 	setBit(psNRF24L01, FEATURE, EN_DPL);
 	psNRF24L01->settings_struct.enableDPL = 1;
@@ -764,6 +781,7 @@ void disableDynamicPayloadLength(nRF24L01_struct_t *psNRF24L01) {
 	psNRF24L01->settings_struct.enableDPL = 0;
 }
 
+/* Payload with Auto Acknowladge */
 void enableAckPayload(nRF24L01_struct_t *psNRF24L01) {
 	setBit(psNRF24L01, FEATURE, EN_ACK_PAY);
 	psNRF24L01->settings_struct.enableAckPay = 1;
@@ -773,13 +791,10 @@ void disableAckPayload(nRF24L01_struct_t *psNRF24L01) {
 	psNRF24L01->settings_struct.enableAckPay = 0;
 }
 
-/**
- * @Brief	Enable W_TX_PAYLOAD_NOACK command
- * */
+/* Enable W_TX_PAYLOAD_NOACK command */
 void enableNoAckCommand(nRF24L01_struct_t *psNRF24L01) {
 	setBit(psNRF24L01, FEATURE, EN_DYN_ACK);
 }
-
 
 /**
  * @Static function for init structures
