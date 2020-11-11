@@ -25,9 +25,6 @@ static void nRF24L01_FIFO_Init(nRF24L01_struct_t *psNRF24L01);
 static void nRF24L01_status_Init(nRF24L01_struct_t *psNRF24L01);
 static void nRF24L01_buffers_Init(nRF24L01_struct_t *psNRF24L01);
 
-/**
- * @
- */
 void delayUs(nRF24L01_struct_t *psNRF24L01, uint16_t time);
 static uint8_t checkPipe(uint8_t pipe);
 static void csnLow(nRF24L01_struct_t *psNRF24L01);
