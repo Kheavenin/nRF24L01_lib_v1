@@ -14,12 +14,12 @@
 #include "nRF24L01.h"
 #include <stdbool.h>
 
-
+bool test_StructInit(nRF24L01_struct_t *psNRF24L01);
 
 bool test_DefaultRegistersValue(nRF24L01_struct_t *psNRF24L01);
+bool test_WriteReadRegisters(nRF24L01_struct_t *psNRF24L01);
 
-
-
+bool test_power(nRF24L01_struct_t *psNRF24L01);
 
 
 

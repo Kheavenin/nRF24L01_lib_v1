@@ -6,7 +6,10 @@
  */
 
 #include "nRF24L01_lib_test.h"
-
+/* Use after nRF_Init */
+bool test_StructInit(nRF24L01_struct_t *psNRF24L01) {
+	return true;
+}
 bool test_ReadDefaultRegistersValue(nRF24L01_struct_t *psNRF24L01) {
 	uint8_t readVar = 0;
 	uint8_t i;
@@ -62,7 +65,6 @@ bool test_ReadDefaultRegistersValue(nRF24L01_struct_t *psNRF24L01) {
 
 	return true;
 }
-
 bool test_WriteReadRegisters(nRF24L01_struct_t *psNRF24L01) {
 	uint8_t readVar = 0;
 	readVar = readReg(psNRF24L01, CONFIG);
@@ -72,5 +74,18 @@ bool test_WriteReadRegisters(nRF24L01_struct_t *psNRF24L01) {
 	TEST_ASSERT_EQUAL_UINT8(0x0F, readVar);
 	writeReg(psNRF24L01, CONFIG, DF_CONFIG);
 
+	return true;
+}
+
+bool test_power(nRF24L01_struct_t *psNRF24L01) {
+	pwrUp(psNRF24L01);
+	uint8_t readVar1 = readReg(psNRF24L01, CONFIG);
+	TEST_ASSERT_BITS(0x02, 0x02, readVar1);
+
+	pwrDown(psNRF24L01);
+	readVar1 = readReg(psNRF24L01, CONFIG);
+	TEST_ASSERT_BITS(0x00, 0x00, readVar1);
+
+	pwrUp(psNRF24L01);
 	return true;
 }
