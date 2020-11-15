@@ -43,15 +43,15 @@ bool test_ReadDefaultRegistersValue(nRF24L01_struct_t *psNRF24L01) {
 	}
 
 	readRegExt(psNRF24L01, RX_ADDR_P0, readTab, 5);
-	TEST_ASSERT_EACH_EQUAL_UINT8(DF_RX_ADDR_P0_0, readTab, 5);
+	TEST_ASSERT_EQUAL_UINT8_ARRAY(DF_RX_ADDR_P0_0, readTab, 5);
 	memset(readTab, 0, 5);
 
 	readRegExt(psNRF24L01, RX_ADDR_P1, readTab, 5);
-	TEST_ASSERT_EACH_EQUAL_UINT8(DF_RX_ADDR_P1_0, readTab, 5);
+	TEST_ASSERT_EQUAL_UINT8_ARRAY(DF_RX_ADDR_P1_0, readTab, 5);
 	memset(readTab, 0, 5);
 
 	readRegExt(psNRF24L01, TX_ADDR, readTab, 5);
-	TEST_ASSERT_EACH_EQUAL_UINT8(DF_TX_ADDR_0, readTab, 5);
+	TEST_ASSERT_EQUAL_UINT8_ARRAY(DF_TX_ADDR_0, readTab, 5);
 	memset(readTab, 0, 5);
 
 	readVar = readReg(psNRF24L01, DYNPD);
@@ -59,6 +59,18 @@ bool test_ReadDefaultRegistersValue(nRF24L01_struct_t *psNRF24L01) {
 
 	readVar = readReg(psNRF24L01, FEATURE);
 	TEST_ASSERT_EQUAL(DF_FEATURE, readVar);
+
+	return true;
+}
+
+bool test_WriteReadRegisters(nRF24L01_struct_t *psNRF24L01) {
+	uint8_t readVar = 0;
+	readVar = readReg(psNRF24L01, CONFIG);
+	writeReg(psNRF24L01, CONFIG, 0x0F);
+
+	readVar = readReg(psNRF24L01, CONFIG);
+	TEST_ASSERT_EQUAL_UINT8(0x0F, readVar);
+	writeReg(psNRF24L01, CONFIG, DF_CONFIG);
 
 	return true;
 }
