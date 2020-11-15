@@ -357,17 +357,18 @@ void modeRX(nRF24L01_struct_t *psNRF24L01);
 void modeTX(nRF24L01_struct_t *psNRF24L01);
 void modeStandby(nRF24L01_struct_t *psNRF24L01);
 
-/* Interrupts */
-void enableTXinterrupt(nRF24L01_struct_t *psNRF24L01); //dont mask data send interrupt
-void enableMaxRXinterrupt(nRF24L01_struct_t *psNRF24L01); //dont mask data receive interrupt
-void enableRTinterrupt(nRF24L01_struct_t *psNRF24L01); //dont mask data retransmition interrupt
-void disableTXinterrupt(nRF24L01_struct_t *psNRF24L01);    //mask data send interrupt
-void disableRXinterrupt(nRF24L01_struct_t *psNRF24L01);    //mask data receive interrupt
-void disableMaxRTinterrupt(nRF24L01_struct_t *psNRF24L01); //mask data retransmition interrupt
-
 /* CRC */
 void enableCRC(nRF24L01_struct_t *psNRF24L01);
+void disableCRC(nRF24L01_struct_t *psNRF24L01);
 void setCRC(nRF24L01_struct_t *psNRF24L01, widthCRC_t w);
+
+/* Interrupts */
+void enableRXinterrupt(nRF24L01_struct_t *psNRF24L01); /* mask dont data receive interrupt */
+void disableRXinterrupt(nRF24L01_struct_t *psNRF24L01); /* mask data receive interrupt */
+void enableTXinterrupt(nRF24L01_struct_t *psNRF24L01); /* dont mask data send interrupt */
+void disableTXinterrupt(nRF24L01_struct_t *psNRF24L01); /* mask data send interrupt */
+void enableMaxRTinterrupt(nRF24L01_struct_t *psNRF24L01); /* dont mask data receive interrupt */
+void disableMaxRTinterrupt(nRF24L01_struct_t *psNRF24L01); /* mask data retransmition interrupt */
 
 /* Auto ACK */
 uint8_t enableAutoAckPipe(nRF24L01_struct_t *psNRF24L01, uint8_t pipe);

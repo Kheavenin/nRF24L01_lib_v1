@@ -77,15 +77,88 @@ bool test_WriteReadRegisters(nRF24L01_struct_t *psNRF24L01) {
 	return true;
 }
 
-bool test_power(nRF24L01_struct_t *psNRF24L01) {
+bool test_Power(nRF24L01_struct_t *psNRF24L01) {
 	pwrUp(psNRF24L01);
-	uint8_t readVar1 = readReg(psNRF24L01, CONFIG);
-	TEST_ASSERT_BITS(0x02, 0x02, readVar1);
+	uint8_t readVar = readReg(psNRF24L01, CONFIG);
+	TEST_ASSERT_BITS(0x02, 0x02, readVar);
 
 	pwrDown(psNRF24L01);
-	readVar1 = readReg(psNRF24L01, CONFIG);
-	TEST_ASSERT_BITS(0x00, 0x00, readVar1);
+	readVar = readReg(psNRF24L01, CONFIG);
+	TEST_ASSERT_BITS(0x00, 0x00, readVar);
 
 	pwrUp(psNRF24L01);
+	return true;
+}
+bool test_Mode(nRF24L01_struct_t *psNRF24L01) {
+
+	modeRX(psNRF24L01);
+	uint8_t readVar = readReg(psNRF24L01, CONFIG);
+	TEST_ASSERT_BITS(0x01, 0x01, readVar);
+
+	modeTX(psNRF24L01);
+	readVar = readReg(psNRF24L01, CONFIG);
+	TEST_ASSERT_BITS(0x01, 0x00, readVar);
+
+	modeRX(psNRF24L01);
+	readVar = readReg(psNRF24L01, CONFIG);
+	TEST_ASSERT_BITS(0x01, 0x01, readVar);
+
+	return true;
+}
+bool test_CRC_Enable(nRF24L01_struct_t *psNRF24L01) {
+	enableCRC(psNRF24L01);
+	uint8_t readVar = readReg(psNRF24L01, CONFIG);
+	TEST_ASSERT_BITS(0x08, 0x08, readVar);
+
+	disableCRC(psNRF24L01);
+	readVar = readReg(psNRF24L01, CONFIG);
+	TEST_ASSERT_BITS(0x08, 0x00, readVar);
+
+	enableCRC(psNRF24L01);
+	readVar = readReg(psNRF24L01, CONFIG);
+	TEST_ASSERT_BITS(0x08, 0x08, readVar);
+
+	return true;
+}
+bool test_Interrupts_Enable(nRF24L01_struct_t *psNRF24L01) {
+
+	writeReg(psNRF24L01, CONFIG, 0x07);
+
+	enableTXinterrupt(psNRF24L01);
+	enableRXinterrupt(psNRF24L01);
+	enableMaxRTinterrupt(psNRF24L01);
+
+	uint8_t readVar = readReg(psNRF24L01, CONFIG);
+	TEST_ASSERT_BITS(0x70, 0x70, readVar);
+
+	disableTXinterrupt(psNRF24L01);
+	disableRXinterrupt(psNRF24L01);
+	disableMaxRTinterrupt(psNRF24L01);
+
+	readVar = readReg(psNRF24L01, CONFIG);
+	TEST_ASSERT_BITS(0x0, 0x00, readVar);
+
+	enableTXinterrupt(psNRF24L01);
+	enableRXinterrupt(psNRF24L01);
+	enableMaxRTinterrupt(psNRF24L01);
+
+	readVar = readReg(psNRF24L01, CONFIG);
+	TEST_ASSERT_BITS(0x70, 0x70, readVar);
+
+	return true;
+}
+bool test_setCRC(nRF24L01_struct_t *psNRF24L01) {
+	setCRC(psNRF24L01, CRC_8_bits);
+	uint8_t readVar = readReg(psNRF24L01, CONFIG);
+	TEST_ASSERT_BITS(0x04, 0x00, readVar);
+
+	setCRC(psNRF24L01, CRC_16_bits);
+	readVar = readReg(psNRF24L01, CONFIG);
+	TEST_ASSERT_BITS(0x04, 0x04, readVar);
+
+	setCRC(psNRF24L01, CRC_8_bits);
+	uint8_t readVar = readReg(psNRF24L01, CONFIG);
+	TEST_ASSERT_BITS(0x04, 0x00, readVar);
+
 	return true;
 }

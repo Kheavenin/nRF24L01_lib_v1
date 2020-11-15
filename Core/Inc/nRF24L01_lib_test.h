@@ -19,11 +19,11 @@ bool test_StructInit(nRF24L01_struct_t *psNRF24L01);
 bool test_DefaultRegistersValue(nRF24L01_struct_t *psNRF24L01);
 bool test_WriteReadRegisters(nRF24L01_struct_t *psNRF24L01);
 
-bool test_power(nRF24L01_struct_t *psNRF24L01);
-
-
-
-
+bool test_Power(nRF24L01_struct_t *psNRF24L01);
+bool test_Mode(nRF24L01_struct_t *psNRF24L01);
+bool test_CRC_Enable(nRF24L01_struct_t *psNRF24L01);
+bool test_Interrupts_Enable(nRF24L01_struct_t *psNRF24L01);
+bool test_setCRC(nRF24L01_struct_t *psNRF24L01);
 
 
 #endif /* INC_NRF24L01_LIB_TEST_H_ */
