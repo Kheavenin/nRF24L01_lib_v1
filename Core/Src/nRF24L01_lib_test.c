@@ -264,3 +264,37 @@ bool test_RF_CH(nRF24L01_struct_t *psNRF24L01) {
 
 	return true;
 }
+bool test_RFpower(nRF24L01_struct_t *psNRF24L01) {
+	uint8_t readVar;
+	readVar = readReg(psNRF24L01, RF_SETUP);
+	TEST_ASSERT_BITS(0x06, 0x06, readVar);
+
+	setRFpower(psNRF24L01, RF_PWR_18dBm);
+	readVar = readReg(psNRF24L01, RF_SETUP);
+	TEST_ASSERT_BITS(0x06, 0x00, readVar);
+
+	setRFpower(psNRF24L01, RF_PWR_6dBm);
+	readVar = readReg(psNRF24L01, RF_SETUP);
+	TEST_ASSERT_BITS(0x06, 0x04, readVar);
+
+	return true;
+}
+bool test_DataRate(nRF24L01_struct_t *psNRF24L01) {
+	uint8_t readVar;
+	readVar = readReg(psNRF24L01, RF_SETUP);
+	TEST_ASSERT_BITS(0x14, 0x04, readVar);
+
+	setDataRate(psNRF24L01, RF_DataRate_1M);
+	readVar = readReg(psNRF24L01, RF_SETUP);
+	TEST_ASSERT_BITS(0x14, 0x00, readVar);
+
+	setDataRate(psNRF24L01, RF_DataRate_2M);
+	readVar = readReg(psNRF24L01, RF_SETUP);
+	TEST_ASSERT_BITS(0x14, 0x04, readVar);
+
+	setDataRate(psNRF24L01, RF_DataRate_250);
+	readVar = readReg(psNRF24L01, RF_SETUP);
+	TEST_ASSERT_BITS(0x14, 0x14, readVar);
+
+	return true;
+}
