@@ -157,8 +157,24 @@ bool test_setCRC(nRF24L01_struct_t *psNRF24L01) {
 	TEST_ASSERT_BITS(0x04, 0x04, readVar);
 
 	setCRC(psNRF24L01, CRC_8_bits);
-	uint8_t readVar = readReg(psNRF24L01, CONFIG);
+	readVar = readReg(psNRF24L01, CONFIG);
 	TEST_ASSERT_BITS(0x04, 0x00, readVar);
+
+	return true;
+}
+
+bool test_EN_AA(nRF24L01_struct_t *psNRF24L01) {
+	uint8_t i, readVar;
+	for (i = 0; i < 6; ++i) {
+		disableAutoAckPipe(psNRF24L01, i);
+	}
+	readVar = readReg(psNRF24L01, EN_AA);
+	TEST_ASSERT_BITS(0x3F, 0x00, readVar);
+	for (i = 0; i < 6; ++i) {
+		enableAutoAckPipe(psNRF24L01, i);
+	}
+	readVar = readReg(psNRF24L01, EN_AA);
+	TEST_ASSERT_BITS(0x3F, 0x3F, readVar);
 
 	return true;
 }
