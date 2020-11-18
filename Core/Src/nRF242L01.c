@@ -539,7 +539,7 @@ uint8_t setAutoRetrCount(nRF24L01_struct_t *psNRF24L01, uint8_t count) {
 	}
 	return ERR_CODE;
 }
-uint8_t setAutoRetrelDay(nRF24L01_struct_t *psNRF24L01, uint8_t delay) {
+uint8_t setAutoRetrDelay(nRF24L01_struct_t *psNRF24L01, uint8_t delay) {
 	if (delay > 0x0F) {                       //if delay in MSB format
 		delay = delay >> 4; //shift to LSB format
 	}
