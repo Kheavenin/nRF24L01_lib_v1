@@ -335,3 +335,15 @@ bool test_RX_pipeAddr(nRF24L01_struct_t *psNRF24L01) {
 
 	return true;
 }
+
+bool test_TX_Addr(nRF24L01_struct_t *psNRF24L01) {
+	uint8_t read[5];
+	memset((void*) read, 0, 5);
+	uint8_t address[5] = { 0xA1, 0xB2, 0xC3, 0xD4, 0xE5 };
+
+	setTransmitPipeAddress(psNRF24L01, address, 5);
+	readRegExt(psNRF24L01, TX_ADDR, read, 5);
+	TEST_ASSERT_EQUAL_UINT8_ARRAY(address, read, 5);
+
+	return true;
+}

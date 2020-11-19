@@ -740,7 +740,7 @@ uint8_t setReceivePipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t pipe, uint8
 	}
 	return OK_CODE;
 }
-uint8_t setTransmitPipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t *addrBuf, size_t addrBufSize) {
+uint8_t setTransmitPipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t *addrBuf, size_t addrBufSize) { //TODO: refactor!
 	if (((psNRF24L01->address_struct.addrWidth) + 2) != addrBufSize) {
 		return ERR_CODE;
 	}
