@@ -704,7 +704,7 @@ uint8_t setReceivePipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t pipe, uint8
 	if (!checkPipe(pipe)) { //if checkPipe return 0 - end fun. by return 0.
 		return ERR_CODE;
 	}
-	if ((addrBufSize < (shortWidth + 2)) || (addrBufSize > (longWidth + 2))) {
+	if (((psNRF24L01->address_struct.addrWidth) + 2) != addrBufSize) {
 		return ERR_CODE;
 	}
 
@@ -740,14 +740,11 @@ uint8_t setReceivePipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t pipe, uint8
 	}
 	return OK_CODE;
 }
-uint8_t setTransmitPipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t *addrBuf, size_t addrBufSize) { //TODO: refactor!
+uint8_t setTransmitPipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t *addrBuf, size_t addrBufSize) {
 	if (((psNRF24L01->address_struct.addrWidth) + 2) != addrBufSize) {
 		return ERR_CODE;
 	}
-	uint8_t i;
-	for (i = 0; i < addrBufSize; i++) { //write to struct
-		psNRF24L01->address_struct.txAddr[i] = addrBuf[i];
-	}
+	memcpy((void*) (psNRF24L01->address_struct.txAddr), (void*) addrBuf, addrBufSize);
 	writeRegExt(psNRF24L01, TX_ADDR, addrBuf, addrBufSize);
 	return OK_CODE;
 }
