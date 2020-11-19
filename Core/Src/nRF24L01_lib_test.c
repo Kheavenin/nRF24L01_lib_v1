@@ -298,3 +298,11 @@ bool test_DataRate(nRF24L01_struct_t *psNRF24L01) {
 
 	return true;
 }
+bool test_RX_pipeAddr(nRF24L01_struct_t *psNRF24L01) {
+	setAddrWidth(psNRF24L01, longWidth);
+	uint8_t rx[5] = { 0xA1, 0xB2, 0xC3, D4, E5 };
+
+
+
+	return true;
+}

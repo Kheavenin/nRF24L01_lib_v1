@@ -842,7 +842,6 @@ uint8_t getTxStatusFIFO(nRF24L01_struct_t *psNRF24L01) {
 	return ERR_CODE;
 }
 
-
 /* Checking reuse package */
 uint8_t getTxReuse(nRF24L01_struct_t *psNRF24L01) {
 	uint8_t tmp = readBit(psNRF24L01, FIFO_STATUS, TX_REUSE);
