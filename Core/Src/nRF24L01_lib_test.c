@@ -299,10 +299,39 @@ bool test_DataRate(nRF24L01_struct_t *psNRF24L01) {
 	return true;
 }
 bool test_RX_pipeAddr(nRF24L01_struct_t *psNRF24L01) {
+	uint8_t read[5];
+	uint8_t address[5] = { 0xA1, 0xB2, 0xC3, 0xD4, 0xE5 };
+	memset((void*) read, 0, 5);
 	setAddrWidth(psNRF24L01, longWidth);
-	uint8_t rx[5] = { 0xA1, 0xB2, 0xC3, D4, E5 };
 
+	setReceivePipeAddress(psNRF24L01, 0, address, 5);
+	readRegExt(psNRF24L01, RX_ADDR_P0, read, 5);
+	TEST_ASSERT_EQUAL_UINT8_ARRAY(address, read, 5);
 
+	memset((void*) read, 0, 5);
+	setReceivePipeAddress(psNRF24L01, 1, address, 5);
+	readRegExt(psNRF24L01, RX_ADDR_P1, read, 5);
+	TEST_ASSERT_EQUAL_UINT8_ARRAY(address, read, 5);
+
+	memset((void*) read, 0, 1);
+	setReceivePipeAddress(psNRF24L01, 2, address, 1);
+	readRegExt(psNRF24L01, RX_ADDR_P2, read, 1);
+	TEST_ASSERT_EQUAL_UINT8_ARRAY(address, read, 1);
+
+	memset((void*) read, 0, 1);
+	setReceivePipeAddress(psNRF24L01, 3, address, 1);
+	readRegExt(psNRF24L01, RX_ADDR_P3, read, 1);
+	TEST_ASSERT_EQUAL_UINT8_ARRAY(address, read, 1);
+
+	memset((void*) read, 0, 1);
+	setReceivePipeAddress(psNRF24L01, 4, address, 1);
+	readRegExt(psNRF24L01, RX_ADDR_P4, read, 1);
+	TEST_ASSERT_EQUAL_UINT8_ARRAY(address, read, 1);
+
+	memset((void*) read, 0, 1);
+	setReceivePipeAddress(psNRF24L01, 5, address, 1);
+	readRegExt(psNRF24L01, RX_ADDR_P5, read, 1);
+	TEST_ASSERT_EQUAL_UINT8_ARRAY(address, read, 1);
 
 	return true;
 }

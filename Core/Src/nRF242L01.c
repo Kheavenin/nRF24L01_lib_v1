@@ -704,58 +704,40 @@ uint8_t setReceivePipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t pipe, uint8
 	if (!checkPipe(pipe)) { //if checkPipe return 0 - end fun. by return 0.
 		return ERR_CODE;
 	}
-	size_t bufSize = 0x05;
-	if (pipe == 0 || pipe == 1) { //if pipe 0 or 1 check bufer width
-		switch (addrBufSize) { //check addrBufSize
-		case 3:
-			bufSize = 0x03;
-			break;
-		case 4:
-			bufSize = 0x04;
-			break;
-		case 5:
-			bufSize = 0x05;
-			break;
-		default:
-			return ERR_CODE;
-			break;
-		}
-		if (pipe == 0) { //check pipe and write addr to struct
-			uint8_t i;
-			for (i = 0; i < addrBufSize; i++) {
-				psNRF24L01->address_struct.rxAddr0[i] = addrBuf[i];
-			}
-		}
-		if (pipe == 1) {
-			uint8_t i;
-			for (i = 0; i < addrBufSize; i++) {
-				psNRF24L01->address_struct.rxAddr1[i] = addrBuf[i];
-			}
-		}
-	} else {
-		if (addrBufSize == 1)
-			bufSize = 0x01;
-		switch (pipe) { //check pipe and write addr to struct
-		case 2:
-			psNRF24L01->address_struct.rxAddr2 = *addrBuf;
-			break;
-		case 3:
-			psNRF24L01->address_struct.rxAddr3 = *addrBuf;
-			break;
-		case 4:
-			psNRF24L01->address_struct.rxAddr4 = *addrBuf;
-			break;
-		case 5:
-			psNRF24L01->address_struct.rxAddr5 = *addrBuf;
-			break;
-		default:
-			return ERR_CODE;
-			break;
-		}
+	if ((addrBufSize < (shortWidth + 2)) || (addrBufSize > (longWidth + 2))) {
+		return ERR_CODE;
 	}
-	uint8_t addr = RX_ADDR_P0 + pipe; //if pipe = 0 -> write Receive address pipe 0
-	writeRegExt(psNRF24L01, addr, addrBuf, bufSize);
 
+	uint8_t addr = RX_ADDR_P0 + pipe;
+	switch (pipe) { //check pipe and write addr to struct
+	case 0:
+		memcpy((void*) (psNRF24L01->address_struct.rxAddr0), (void*) addrBuf, addrBufSize);
+		writeRegExt(psNRF24L01, addr, addrBuf, addrBufSize);
+		break;
+	case 1:
+		memcpy((void*) (psNRF24L01->address_struct.rxAddr1), (void*) addrBuf, addrBufSize);
+		writeRegExt(psNRF24L01, addr, addrBuf, addrBufSize);
+		break;
+	case 2:
+		psNRF24L01->address_struct.rxAddr2 = *addrBuf;
+		writeReg(psNRF24L01, addr, *addrBuf);
+		break;
+	case 3:
+		psNRF24L01->address_struct.rxAddr3 = *addrBuf;
+		writeReg(psNRF24L01, addr, *addrBuf);
+		break;
+	case 4:
+		psNRF24L01->address_struct.rxAddr4 = *addrBuf;
+		writeReg(psNRF24L01, addr, *addrBuf);
+		break;
+	case 5:
+		psNRF24L01->address_struct.rxAddr5 = *addrBuf;
+		writeReg(psNRF24L01, addr, *addrBuf);
+		break;
+	default:
+		return ERR_CODE;
+		break;
+	}
 	return OK_CODE;
 }
 uint8_t setTransmitPipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t *addrBuf, size_t addrBufSize) {

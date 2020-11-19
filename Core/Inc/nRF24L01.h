@@ -22,10 +22,9 @@
 /**
  * Includes
  */
-#include <stdbool.h>
 #include "main.h"
-#include "string.h"
-
+#include <string.h>
+#include <stdbool.h>
 /**
  * Map rregisters
  **/

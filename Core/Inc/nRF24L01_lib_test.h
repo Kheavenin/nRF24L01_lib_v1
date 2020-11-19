@@ -34,6 +34,6 @@ bool test_ARD(nRF24L01_struct_t *psNRF24L01);
 bool test_RF_CH(nRF24L01_struct_t *psNRF24L01);
 bool test_RFpower(nRF24L01_struct_t *psNRF24L01);
 bool test_DataRate(nRF24L01_struct_t *psNRF24L01);
-
+bool test_RX_pipeAddr(nRF24L01_struct_t *psNRF24L01);
 
 #endif /* INC_NRF24L01_LIB_TEST_H_ */
