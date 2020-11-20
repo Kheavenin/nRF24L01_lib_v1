@@ -752,8 +752,7 @@ uint8_t setTransmitPipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t *addrBuf, 
 /* RX Payload width */
 uint8_t getRxPayloadWidth(nRF24L01_struct_t *psNRF24L01, uint8_t pipe) {
 	if (checkPipe(pipe)) {
-		uint8_t addr = RX_PW_P0 + pipe;
-		uint8_t tmp = readReg(psNRF24L01, addr);
+		uint8_t tmp = readReg(psNRF24L01, (RX_PW_P0 + pip));
 		psNRF24L01->settings_struct.pipePayLen[pipe] = tmp;
 		return tmp;
 	}
@@ -764,8 +763,7 @@ uint8_t setRxPayloadWidth(nRF24L01_struct_t *psNRF24L01, uint8_t pipe, uint8_t w
 		if (width < 1 && width > 32) { //check width correct value
 			return ERR_CODE;
 		}
-		uint8_t addr = RX_PW_P0 + pipe;
-		writeReg(psNRF24L01, addr, width);
+		writeReg(psNRF24L01, (RX_PW_P0 + pipe), width);
 		psNRF24L01->settings_struct.pipePayLen[pipe] = width;
 		return OK_CODE;
 	}

@@ -335,7 +335,6 @@ bool test_RX_pipeAddr(nRF24L01_struct_t *psNRF24L01) {
 
 	return true;
 }
-
 bool test_TX_Addr(nRF24L01_struct_t *psNRF24L01) {
 	uint8_t read[5];
 	memset((void*) read, 0, 5);
@@ -345,5 +344,29 @@ bool test_TX_Addr(nRF24L01_struct_t *psNRF24L01) {
 	readRegExt(psNRF24L01, TX_ADDR, read, 5);
 	TEST_ASSERT_EQUAL_UINT8_ARRAY(address, read, 5);
 
+	return true;
+}
+
+bool test_RxPayloadWidth(nRF24L01_struct_t *psNRF24L01) {
+	uint8_t read, get, i;
+
+	for (i = 0; i < 6; i++) {
+		read = readReg(psNRF24L01, RX_PW_P0 + i);
+		TEST_ASSERT_EQUAL(0x00, read);
+
+		get = getRxPayloadWidth(psNRF24L01, i);
+		TEST_ASSERT_EQUAL(read, get);
+
+		writeReg(psNRF24L01, RX_ADDR_P0 + i, 0x07);
+		read = readReg(psNRF24L01, RX_PW_P0 + i);
+		TEST_ASSERT_EQUAL(0x07, read);
+
+		get = getRxPayloadWidth(psNRF24L01, i);
+		TEST_ASSERT_EQUAL(read, get);
+
+		writeReg(psNRF24L01, RX_ADDR_P0 + i, 0x00);
+		read = readReg(psNRF24L01, RX_PW_P0 + i);
+		TEST_ASSERT_EQUAL(0x00, read);
+	}
 	return true;
 }
