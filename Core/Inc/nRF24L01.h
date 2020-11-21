@@ -428,7 +428,7 @@ uint8_t setTransmitPipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t *addrBuf, 
 
 /* Payload width of each pipes */
 uint8_t getRxPayloadWidth(nRF24L01_struct_t *psNRF24L01, uint8_t pipe);
-void setRxPayloadWidth(nRF24L01_struct_t *psNRF24L01, uint8_t pipe, uint8_t width);
+uint8_t setRxPayloadWidth(nRF24L01_struct_t *psNRF24L01, uint8_t pipe, uint8_t width);
 
 /* TX and RX FIFO */
 uint8_t getRxStatusFIFO(nRF24L01_struct_t *psNRF24L01);

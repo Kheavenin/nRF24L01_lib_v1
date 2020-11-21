@@ -346,7 +346,6 @@ bool test_TX_Addr(nRF24L01_struct_t *psNRF24L01) {
 
 	return true;
 }
-
 bool test_RxPayloadWidth(nRF24L01_struct_t *psNRF24L01) {
 	uint8_t read, get, i;
 
@@ -370,3 +369,36 @@ bool test_RxPayloadWidth(nRF24L01_struct_t *psNRF24L01) {
 	}
 	return true;
 }
+bool test_EN_DPL(nRF24L01_struct_t *psNRF24L01) {
+	uint8_t read;
+
+	enableDynamicPayloadLength(psNRF24L01);
+	read = readReg(psNRF24L01, FEATURE);
+	TEST_ASSERT_BITS(0x04, 0x04, read);
+
+	disableDynamicPayloadLength(psNRF24L01);
+	read = readReg(psNRF24L01, FEATURE);
+	TEST_ASSERT_BITS(0x04, 0x00, read);
+
+	enableDynamicPayloadLength(psNRF24L01);
+	read = readReg(psNRF24L01, FEATURE);
+	TEST_ASSERT_BITS(0x04, 0x04, read);
+
+	return true;
+}
+bool test_DynamicPayloadLengthPipe(nRF24L01_struct_t *psNRF24L01) {
+	uint8_t read, i;
+	read = readReg(psNRF24L01, DYNPD);
+	TEST_ASSERT_EQUAL(0x00, read);
+	for (i = 0; i < 6; i++) {
+		enableDynamicPayloadLengthPipe(psNRF24L01, i);
+		read = readReg(psNRF24L01, DYNPD);
+		TEST_ASSERT_BITS(0x3F, i, read);
+
+		disableDynamicPayloadLengthPipe(psNRF24L01, i);
+		read = readReg(psNRF24L01, DYNPD);
+		TEST_ASSERT_BITS(0x3F, 0x00, read);
+	}
+	return true;
+}
+

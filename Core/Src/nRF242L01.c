@@ -752,7 +752,7 @@ uint8_t setTransmitPipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t *addrBuf, 
 /* RX Payload width */
 uint8_t getRxPayloadWidth(nRF24L01_struct_t *psNRF24L01, uint8_t pipe) {
 	if (checkPipe(pipe)) {
-		uint8_t tmp = readReg(psNRF24L01, (RX_PW_P0 + pip));
+		uint8_t tmp = readReg(psNRF24L01, (RX_PW_P0 + pipe));
 		psNRF24L01->settings_struct.pipePayLen[pipe] = tmp;
 		return tmp;
 	}
@@ -843,7 +843,7 @@ uint8_t disableDynamicPayloadLengthPipe(nRF24L01_struct_t *psNRF24L01, uint8_t p
 		return ERR_CODE;
 	}
 	resetBit(psNRF24L01, DYNPD, pipe);
-	psNRF24L01->settings_struct.pipeDPL |= (0 << pipe);
+	psNRF24L01->settings_struct.pipeDPL &= ~(1 << pipe);
 	return OK_CODE;
 }
 
