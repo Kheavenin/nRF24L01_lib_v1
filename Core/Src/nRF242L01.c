@@ -871,6 +871,9 @@ void disableAckPayload(nRF24L01_struct_t *psNRF24L01) {
 void enableNoAckCommand(nRF24L01_struct_t *psNRF24L01) {
 	setBit(psNRF24L01, FEATURE, EN_DYN_ACK);
 }
+void disableNoAckCommand(nRF24L01_struct_t *psNRF24L01) {
+	resetBit(psNRF24L01, FEATURE, EN_DYN_ACK);
+}
 
 /**
  * @Static function for init structures

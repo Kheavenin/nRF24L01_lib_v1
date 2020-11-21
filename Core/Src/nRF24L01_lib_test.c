@@ -370,10 +370,8 @@ bool test_RxPayloadWidth(nRF24L01_struct_t *psNRF24L01) {
 	return true;
 }
 bool test_EN_DPL(nRF24L01_struct_t *psNRF24L01) {
-	uint8_t read;
-
 	enableDynamicPayloadLength(psNRF24L01);
-	read = readReg(psNRF24L01, FEATURE);
+	uint8_t read = readReg(psNRF24L01, FEATURE);
 	TEST_ASSERT_BITS(0x04, 0x04, read);
 
 	disableDynamicPayloadLength(psNRF24L01);
@@ -401,4 +399,31 @@ bool test_DynamicPayloadLengthPipe(nRF24L01_struct_t *psNRF24L01) {
 	}
 	return true;
 }
+bool test_ACK_PAY(nRF24L01_struct_t *psNRF24L01) {
+	enableAckPayload(psNRF24L01);
+	uint8_t read = readReg(psNRF24L01, FEATURE);
+	TEST_ASSERT_BITS(0x02, 0x02, read);
 
+	disableAckPayload(psNRF24L01);
+	read = readReg(psNRF24L01, FEATURE);
+	TEST_ASSERT_BITS(0x02, 0x00, read);
+
+	enableAckPayload(psNRF24L01);
+	read = readReg(psNRF24L01, FEATURE);
+	TEST_ASSERT_BITS(0x02, 0x02, read);
+	return true;
+}
+bool test_DYN_ACK(nRF24L01_struct_t *psNRF24L01) {
+	enableNoAckCommand(psNRF24L01);
+	uint8_t read = readReg(psNRF24L01, FEATURE);
+	TEST_ASSERT_BITS(0x01, 0x01, read);
+
+	disableNoAckCommand(psNRF24L01);
+	read = readReg(psNRF24L01, FEATURE);
+	TEST_ASSERT_BITS(0x01, 0x00, read);
+
+	enableNoAckCommand(psNRF24L01);
+	read = readReg(psNRF24L01, FEATURE);
+	TEST_ASSERT_BITS(0x01, 0x01, read);
+	return true;
+}

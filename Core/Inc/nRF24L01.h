@@ -448,4 +448,5 @@ void enableAckPayload(nRF24L01_struct_t *psNRF24L01);
 void disableAckPayload(nRF24L01_struct_t *psNRF24L01);
 
 void enableNoAckCommand(nRF24L01_struct_t *psNRF24L01); //TODO: to tests
+void disableNoAckCommand(nRF24L01_struct_t *psNRF24L01); //TODO: to tests
 #endif /* INC_NRF24L01_H_ */
