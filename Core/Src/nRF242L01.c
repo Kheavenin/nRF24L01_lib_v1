@@ -641,18 +641,26 @@ uint8_t getInterruptFlags(nRF24L01_struct_t *psNRF24L01) {
 		psNRF24L01->status_struct.dataReadIrq = 1;
 	return tmp;
 }
+
 uint8_t getStatusFullTxFIFO(nRF24L01_struct_t *psNRF24L01) {
-	if (readBit(psNRF24L01, STATUS, bit0)) {
+	/*
+	 * 	if (readBit(psNRF24L01, STATUS, bit0)) {
 		psNRF24L01->status_struct.txFull = 1;
 		return 1; //TX FIFO full
 	}
 	psNRF24L01->status_struct.txFull = 0;
 	return 0; //Available locations in TX FIFO
+	 */
+	return (psNRF24L01->status_struct.txFull = readBit(psNRF24L01, STATUS, bit0));
 }
-uint8_t getPipeStatusRxFIFO(nRF24L01_struct_t *psNRF24L01) { //Zmieniono na kody bledow
+uint8_t getPipeStatusRxFIFO(nRF24L01_struct_t *psNRF24L01) {
+	/*
+	 * //Zmieniono na kody bledow
 	uint8_t tmp = readReg(psNRF24L01, STATUS);
 	tmp &= 0x0E; //save only pipe number bits
 	tmp = tmp >> 1;
+	 */
+	uint8_t tmp = ((readReg(psNRF24L01, STATUS) & 0x0E) >> 1);
 	if (checkPipe(tmp)) {
 		psNRF24L01->status_struct.pipeNumber = tmp;
 		return tmp;

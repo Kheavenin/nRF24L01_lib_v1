@@ -433,6 +433,28 @@ bool test_DYN_ACK(nRF24L01_struct_t *psNRF24L01) {
 	return true;
 }
 
+bool test_TX_FIFO(nRF24L01_struct_t *psNRF24L01) {
+	uint8_t statusFIFO, read, i;
+	uint8_t payload[32];
+	memset((void*) payload, 0xA3, sizeof(payload));
+	flushTx(psNRF24L01);
+	
+	read = readReg(psNRF24L01, STATUS);
+	statusFIFO = getStatusFullTxFIFO(psNRF24L01);
+	TEST_ASSERT_BITS(0x01, 0x00, statusFIFO);
+
+	for (i = 0; i < 4; i++) {
+		writeTxPayload(psNRF24L01, payload, sizeof(payload));
+	}
+	
+	read = readReg(psNRF24L01, STATUS);
+	statusFIFO = getStatusFullTxFIFO(psNRF24L01);
+	TEST_ASSERT_BITS(0x01, 0x01, statusFIFO);
+
+
+	return true;
+}
+
 void test_SetterGetters(void) {
 	nRF24L01_struct_t sNRF24L01, *psNRF24L01;
 	psNRF24L01 = &sNRF24L01;
@@ -466,7 +488,11 @@ void test_SetterGetters(void) {
 	test_ACK_PAY(psNRF24L01);
 	test_DYN_ACK(psNRF24L01);
 }
-
+void test_FIFO(void) {
+	nRF24L01_struct_t sNRF24L01, *psNRF24L01;
+	psNRF24L01 = &sNRF24L01;
+	test_TX_FIFO(psNRF24L01);
+}
 void setUp(void) {
 
 }
@@ -477,7 +503,7 @@ void tearDown(void) {
 int unityTest(void) {
 	UNITY_BEGIN();
 	RUN_TEST(test_SetterGetters);
-
+	RUN_TEST(test_FIFO);
 
 	return UNITY_END();
 
