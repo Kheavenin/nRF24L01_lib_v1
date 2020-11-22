@@ -14,6 +14,11 @@
 #include "nRF24L01.h"
 #include <stdbool.h>
 
+int unityTest(void);
+void test_SetterGetters(void);
+void setUp(void);
+void tearDown(void);
+
 bool test_StructInit(nRF24L01_struct_t *psNRF24L01);
 
 bool test_DefaultRegistersValue(nRF24L01_struct_t *psNRF24L01);

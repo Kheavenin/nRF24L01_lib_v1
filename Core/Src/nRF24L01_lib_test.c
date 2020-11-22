@@ -162,6 +162,7 @@ bool test_setCRC(nRF24L01_struct_t *psNRF24L01) {
 
 	return true;
 }
+
 bool test_EN_AA(nRF24L01_struct_t *psNRF24L01) {
 	uint8_t i, readVar;
 	for (i = 0; i < 6; ++i) {
@@ -219,6 +220,7 @@ bool test_SetupAW(nRF24L01_struct_t *psNRF24L01) {
 
 	return true;
 }
+
 bool test_ARC(nRF24L01_struct_t *psNRF24L01) {
 	uint8_t readVar;
 	readVar = readReg(psNRF24L01, SETUP_RETR);
@@ -249,6 +251,7 @@ bool test_ARD(nRF24L01_struct_t *psNRF24L01) {
 
 	return true;
 }
+
 bool test_RF_CH(nRF24L01_struct_t *psNRF24L01) {
 	uint8_t readVar;
 	readVar = readReg(psNRF24L01, RF_CH);
@@ -298,6 +301,7 @@ bool test_DataRate(nRF24L01_struct_t *psNRF24L01) {
 
 	return true;
 }
+
 bool test_RX_pipeAddr(nRF24L01_struct_t *psNRF24L01) {
 	uint8_t read[5];
 	uint8_t address[5] = { 0xA1, 0xB2, 0xC3, 0xD4, 0xE5 };
@@ -369,6 +373,7 @@ bool test_RxPayloadWidth(nRF24L01_struct_t *psNRF24L01) {
 	}
 	return true;
 }
+
 bool test_EN_DPL(nRF24L01_struct_t *psNRF24L01) {
 	enableDynamicPayloadLength(psNRF24L01);
 	uint8_t read = readReg(psNRF24L01, FEATURE);
@@ -426,4 +431,54 @@ bool test_DYN_ACK(nRF24L01_struct_t *psNRF24L01) {
 	read = readReg(psNRF24L01, FEATURE);
 	TEST_ASSERT_BITS(0x01, 0x01, read);
 	return true;
+}
+
+void test_SetterGetters(void) {
+	nRF24L01_struct_t sNRF24L01, *psNRF24L01;
+	psNRF24L01 = &sNRF24L01;
+
+	test_ReadDefaultRegistersValue(psNRF24L01);
+	test_WriteReadRegisters(psNRF24L01);
+
+	test_Power(psNRF24L01);
+	test_Mode(psNRF24L01);
+	test_CRC_Enable(psNRF24L01);
+	test_Interrupts_Enable(psNRF24L01);
+	test_setCRC(psNRF24L01);
+
+	test_EN_AA(psNRF24L01);
+	test_EN_RXADDR(psNRF24L01);
+	test_SetupAW(psNRF24L01);
+
+	test_ARC(psNRF24L01);
+	test_ARD(psNRF24L01);
+
+	test_RF_CH(psNRF24L01);
+	test_RFpower(psNRF24L01);
+	test_DataRate(psNRF24L01);
+
+	test_RX_pipeAddr(psNRF24L01);
+	test_TX_Addr(psNRF24L01);
+	test_RxPayloadWidth(psNRF24L01);
+
+	test_EN_DPL(psNRF24L01);
+	test_DynamicPayloadLengthPipe(psNRF24L01);
+	test_ACK_PAY(psNRF24L01);
+	test_DYN_ACK(psNRF24L01);
+}
+
+void setUp(void) {
+
+}
+void tearDown(void) {
+
+}
+
+int unityTest(void) {
+	UNITY_BEGIN();
+	RUN_TEST(test_SetterGetters);
+
+
+	return UNITY_END();
+
 }
