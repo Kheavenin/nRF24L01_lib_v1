@@ -98,18 +98,22 @@ int main(void)
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
 
-	nRF24L01_struct_t sRF;
-	psRF = &sRF;
-	nRF_Init(psRF, &hspi1, &htim1, SPI1_CSN_GPIO_Port, SPI1_CSN_Pin, nRF_CE_GPIO_Port, nRF_CE_Pin);
-	HAL_TIM_Base_Start(psRF->hardware_struct.nRFtim);
-	uint8_t read = getStatus(&sRF);
-	pwrUp(psRF);
-	read = readReg(psRF, CONFIG);
-	read = readReg(psRF, EN_AA);
-	read = readReg(psRF, EN_RXADDR);
-	read = readReg(psRF, SETUP_RETR);
+  nRF24L01_struct_t sRF;
+  psRF = &sRF;
+  nRF_Init(psRF, &hspi1, &htim1, SPI1_CSN_GPIO_Port, SPI1_CSN_Pin, nRF_CE_GPIO_Port, nRF_CE_Pin);
+  HAL_TIM_Base_Start(psRF->hardware_struct.nRFtim);
+  uint8_t read = getStatus(psRF);
+  writeReg(psRF, CONFIG, 0x00);
+  read = readReg(psRF, CONFIG);
+  pwrUp(psRF);
+  read = readReg(psRF, CONFIG);
 
-	//unityTest();
+  readRegExt(psRF, RX_ADDR_P0, readTab, 5);
+  setReceivePipeAddress(psRF, 0, writeTab, 5);
+  readRegExt(psRF, RX_ADDR_P0, readTab, 5);
+
+  test_SetterGetters(psRF);
+  test_FIFO(psRF);
   /* USER CODE END 2 */
  
  
@@ -118,21 +122,21 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		//delayUs(psRF, 100);
-		read = readReg(psRF, CONFIG);
-		writeReg(psRF, CONFIG, 0x0F);
-		read = readReg(psRF, CONFIG);
-		read = readReg(psRF, EN_AA);
-		read = readReg(psRF, EN_RXADDR);
-		read = readReg(psRF, SETUP_AW);
-		read = readReg(&sRF, SETUP_RETR);
-		read = readReg(psRF, RF_CH);
-		read = readReg(psRF, RF_SETUP);
-		read = readReg(psRF, OBSERVE_TX);
-		writeRegExt(psRF, TX_ADDR, writeTab, 5);
-		writeRegExt(psRF, RX_ADDR_P1, writeTab, 5);
-		readRegExt(psRF, TX_ADDR, readTab, 5);
-		readRegExt(psRF, RX_ADDR_P1, readTab, 5);
+    //delayUs(psRF, 100);
+    read = readReg(psRF, CONFIG);
+    writeReg(psRF, CONFIG, 0x0F);
+    read = readReg(psRF, CONFIG);
+    read = readReg(psRF, EN_AA);
+    read = readReg(psRF, EN_RXADDR);
+    read = readReg(psRF, SETUP_AW);
+    read = readReg(&sRF, SETUP_RETR);
+    read = readReg(psRF, RF_CH);
+    read = readReg(psRF, RF_SETUP);
+    read = readReg(psRF, OBSERVE_TX);
+    writeRegExt(psRF, TX_ADDR, writeTab, 5);
+    writeRegExt(psRF, RX_ADDR_P1, writeTab, 5);
+    readRegExt(psRF, TX_ADDR, readTab, 5);
+    readRegExt(psRF, RX_ADDR_P1, readTab, 5);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
