@@ -109,7 +109,7 @@ int main(void)
 	read = readReg(psRF, EN_RXADDR);
 	read = readReg(psRF, SETUP_RETR);
 
-	unityTest();
+	//unityTest();
   /* USER CODE END 2 */
  
  
