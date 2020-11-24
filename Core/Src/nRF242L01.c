@@ -105,53 +105,43 @@ void writeReg(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t val) {
 /* Extended read and write functions - R/W few registers */
 void readRegExt(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t *pBuf, size_t bufSize) {
 	if (psNRF24L01 != NULL && pBuf != NULL && bufSize > 0) {
-		uint8_t command = 0;
-		uint8_t i = 0;
-
+		uint8_t command = R_REGISTER | addr;	//set command
 		csnLow(psNRF24L01);
-		do {
-			command = R_REGISTER | (addr + i);	//set command
 #if SPI_BLOCKING_MODE
-	 HAL_SPI_Transmit(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command), SPI_TIMEOUT);     //transmit command
-	 delayUs(psNRF24L01, 50);
-	 HAL_SPI_Receive(psNRF24L01->hardware_struct.nRFspi, (pBuf + i), sizeof(uint8_t)), SPI_TIMEOUT);   //receive data
+		 HAL_SPI_Transmit(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command), SPI_TIMEOUT);     //transmit command
+		 delayUs(psNRF24L01, 50);
+		 HAL_SPI_Transmit(psNRF24L01->hardware_struct.nRFspi, pBuf , bufSize, SPI_TIMEOUT);   //receive data
 #endif
 #if SPI_IT_MODE
 	 HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));		//transmit command
-	 HAL_SPI_Receive_IT(psNRF24L01->hardware_struct.nRFspi, (pBuf + i), sizeof(uint8_t));		//receive data
+	 HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, pBuf , bufSize);		//receive data
 #endif
 #if SPI_DMA_MODE
-			HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));	//transmit command
-			HAL_SPI_Receive_DMA(psNRF24L01->hardware_struct.nRFspi, (pBuf + i), sizeof(uint8_t));	//receive data
+		HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));	//transmit command
+		delayUs(psNRF24L01, 50);
+		HAL_SPI_Receive_DMA(psNRF24L01->hardware_struct.nRFspi, pBuf, bufSize);	//receive data
 #endif
-			i++;
-		} while (i != bufSize);
 		csnHigh(psNRF24L01);
 	}
 }
 void writeRegExt(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t *pBuf, size_t bufSize) {
-	if (psNRF24L01 != NULL && pBuf != NULL && bufSize > 0) {
-		uint8_t command = 0;
-		uint8_t i = 0;
+	if ((psNRF24L01 != NULL) && (pBuf != NULL) && (bufSize > 0)) {
+		uint8_t command = W_REGISTER | addr;	//set command
 
 		csnLow(psNRF24L01);
-		do {
-			command = W_REGISTER | (addr + i);	//set command
 #if SPI_BLOCKING_MODE
 	 HAL_SPI_Transmit(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command), SPI_TIMEOUT);     //transmit command
 	 delayUs(psNRF24L01, 50);
-	 HAL_SPI_Transmit(psNRF24L01->hardware_struct.nRFspi, (pBuf + i), sizeof(uint8_t)), SPI_TIMEOUT);   //receive data
+	 HAL_SPI_Transmit(psNRF24L01->hardware_struct.nRFspi, pBuf , bufSize, SPI_TIMEOUT);   //receive data
 #endif
 #if SPI_IT_MODE
 	 HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));		//transmit command
-	 HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, (pBuf + i), sizeof(uint8_t));		//receive data
+	 HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, pBuf , bufSize);		//receive data
 #endif
 #if SPI_DMA_MODE
-			HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));	//transmit command
-			HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, (pBuf + i), sizeof(uint8_t));	//transmit data
+		HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));	//transmit command
+		HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, pBuf, bufSize);	//transmit data
 #endif
-			i++;
-		} while (i != bufSize);
 		csnHigh(psNRF24L01);
 	}
 }
@@ -391,15 +381,15 @@ uint8_t checkReceivedPayload(nRF24L01_struct_t *psNRF24L01, uint8_t pipe) {
 
 /* Power control */
 void pwrUp(nRF24L01_struct_t *psNRF24L01) {
-	uint8_t tmp = readReg(psNRF24L01, CONFIG);
-	tmp |= (1 << 1);
-	writeReg(psNRF24L01, CONFIG, tmp);
+	uint8_t tmp = ((readReg(psNRF24L01, CONFIG)) | (1 << 1));
+	writeReg(psNRF24L01, CONFIG, tmp); //refactored
 }
 void pwrDown(nRF24L01_struct_t *psNRF24L01) {
 	ceLow(psNRF24L01);
-	uint8_t tmp = readReg(psNRF24L01, CONFIG);
-	tmp &= (0 << 1);
-	writeReg(psNRF24L01, CONFIG, tmp);
+	//uint8_t tmp = ((readReg(psNRF24L01, CONFIG)) & (0 << 1));
+	//tmp &= (0 << 1);
+	resetBit(psNRF24L01, CONFIG, bit1);
+	//writeReg(psNRF24L01, CONFIG, ((readReg(psNRF24L01, CONFIG)) & (0 << 1)));	//refactored
 }
 
 /* Switch to RX/TX mode or Standby-I */
@@ -427,9 +417,12 @@ void modeTX(nRF24L01_struct_t *psNRF24L01) {
 	flushRx(psNRF24L01); //clear (flush) RX FIFO buffer
 	flushTx(psNRF24L01); //clear (flush) TX FIFO buffer
 
+	/*
 	resetRX_DR(psNRF24L01); //clear interrupts flags
 	resetTX_DS(psNRF24L01);
-	resetMAX_RT(psNRF24L01);
+	 resetMAX_RT(psNRF24L01);
+	 */
+	resetInterruptFlags(psNRF24L01); //clear interrupts flags
 
 	ceHigh(psNRF24L01);
 	resetBit(psNRF24L01, CONFIG, bit0);
@@ -530,10 +523,13 @@ void setAddrWidth(nRF24L01_struct_t *psNRF24L01, addressWidth_t width) {
 /* Setup retransmission */
 uint8_t setAutoRetrCount(nRF24L01_struct_t *psNRF24L01, uint8_t count) {
 	if (count >= 0x00 && count <= 0x0F) {                                                 //check count val
+	/*
 		uint8_t tmp = readReg(psNRF24L01, SETUP_RETR); //read reg. val
 		tmp = tmp & 0xF0;                             // reset LSB and save MSB
 		tmp |= count;                                 //add tmp and count
-		writeReg(psNRF24L01, SETUP_RETR, tmp);         //write to SETUP_RETR
+	 */
+		//uint8 tmp = (((readReg(psNRF24L01, SETUP_RETR)) & 0xF0) | count);
+		writeReg(psNRF24L01, SETUP_RETR, (((readReg(psNRF24L01, SETUP_RETR)) & 0xF0) | count));     //refactored
 		psNRF24L01->settings_struct.ARC = count;
 		return OK_CODE;
 	}
@@ -544,10 +540,13 @@ uint8_t setAutoRetrDelay(nRF24L01_struct_t *psNRF24L01, uint8_t delay) {
 		delay = delay >> 4; //shift to LSB format
 	}
 	if (delay >= 0x00 && delay <= 0x0F) {
+		/*
 		uint8_t tmp = readReg(psNRF24L01, SETUP_RETR);
 		tmp = tmp & 0x0F;    //save LSB, reset MSB
 		tmp |= (delay << 4); //add tmp and delay
-		writeReg(psNRF24L01, SETUP_RETR, tmp);
+		 */
+		//uint8_t tmp = ((readReg(psNRF24L01, SETUP_RETR)) & 0x0F) | (delay << 4);
+		writeReg(psNRF24L01, SETUP_RETR, ((readReg(psNRF24L01, SETUP_RETR)) & 0x0F) | (delay << 4)); //refactored
 		psNRF24L01->settings_struct.ARD = delay;
 		return OK_CODE;
 	}
@@ -566,18 +565,24 @@ uint8_t setChannel(nRF24L01_struct_t *psNRF24L01, uint8_t channel) {
 /* RF setup */
 void setRFpower(nRF24L01_struct_t *psNRF24L01, powerRF_t power) {
 	if (power <= RF_PWR_0dBm && power >= RF_PWR_18dBm) {
-		uint8_t tmp = readReg(psNRF24L01, RF_SETUP); //
+		/*
+		uint8_t tmp = readReg(psNRF24L01, RF_SETUP);
 		tmp = tmp & 0xF8;                           //0xF8 - 1111 1000B reset 3 LSB
 		tmp = tmp | (power << 1);                   //combining tmp and shifted power
-		writeReg(psNRF24L01, RF_SETUP, tmp);
+		 */
+		//uint8_t tmp = (((readReg(psNRF24L01, RF_SETUP)) & 0xF8) | (power << 1));
+		writeReg(psNRF24L01, RF_SETUP, (((readReg(psNRF24L01, RF_SETUP)) & 0xF8) | (power << 1)));	//refactored
 		psNRF24L01->settings_struct.powerRF = power;
 	}
 }
 void setDataRate(nRF24L01_struct_t *psNRF24L01, dataRate_t rate) {
+	/*
 	uint8_t tmp = readReg(psNRF24L01, RF_SETUP); //
 	tmp = tmp & 0x06;    //0x06 = 0000 0110B - reset data rate's bits - Also this line reset PLL_LOCK and CONT_WAVE bits
 	tmp = tmp | (rate << 3);                    //combining tmp and shifted data rate
-	writeReg(psNRF24L01, RF_SETUP, tmp);
+ */
+	uint8_t tmp = (((readReg(psNRF24L01, RF_SETUP)) & 0x06) | (rate << 3));
+	writeReg(psNRF24L01, RF_SETUP, tmp);	//refactored
 	psNRF24L01->settings_struct.dataRate = rate;
 }
 #if ADVANCED_RF_OPT
@@ -631,8 +636,7 @@ uint8_t getMAX_RT(nRF24L01_struct_t *psNRF24L01) {
 	return (psNRF24L01->status_struct.maxRetr);
 }
 uint8_t getInterruptFlags(nRF24L01_struct_t *psNRF24L01) {
-	uint8_t tmp = readReg(psNRF24L01, STATUS);
-	tmp = 4 >> (tmp & 0x70);
+	uint8_t tmp = (4 >> (readReg(psNRF24L01, STATUS) & 0x70));	//refatored
 	if (tmp & 0x01)
 		psNRF24L01->status_struct.maxRetr = 1;
 	if (tmp & 0x02)
@@ -651,7 +655,7 @@ uint8_t getStatusFullTxFIFO(nRF24L01_struct_t *psNRF24L01) {
 	psNRF24L01->status_struct.txFull = 0;
 	return 0; //Available locations in TX FIFO
 	 */
-	return (psNRF24L01->status_struct.txFull = readBit(psNRF24L01, STATUS, bit0));
+	return (psNRF24L01->status_struct.txFull = readBit(psNRF24L01, STATUS, bit0));	//refactored
 }
 uint8_t getPipeStatusRxFIFO(nRF24L01_struct_t *psNRF24L01) {
 	/*
@@ -660,7 +664,7 @@ uint8_t getPipeStatusRxFIFO(nRF24L01_struct_t *psNRF24L01) {
 	tmp &= 0x0E; //save only pipe number bits
 	tmp = tmp >> 1;
 	 */
-	uint8_t tmp = ((readReg(psNRF24L01, STATUS) & 0x0E) >> 1);
+	uint8_t tmp = ((readReg(psNRF24L01, STATUS) & 0x0E) >> 1);	//refactored
 	if (checkPipe(tmp)) {
 		psNRF24L01->status_struct.pipeNumber = tmp;
 		return tmp;
@@ -679,20 +683,30 @@ uint8_t getPipeStatusRxFIFO(nRF24L01_struct_t *psNRF24L01) {
 
 /* Transmit observe */
 uint8_t lostPacketsCount(nRF24L01_struct_t *psNRF24L01) {
+	/*
 	uint8_t tmp = readReg(psNRF24L01, OBSERVE_TX);
-	tmp = (tmp >> 4);
-	psNRF24L01->status_struct.packetsLost = tmp;
-	return tmp;
+	 tmp = (tmp >> 4);
+	 psNRF24L01->status_struct.packetsLost = ((readReg(psNRF24L01, OBSERVE_TX)) >> 4);	//refactored
+	 return tmp;
+	 */
+	return (psNRF24L01->status_struct.packetsLost = ((readReg(psNRF24L01, OBSERVE_TX)) >> 4));	//refactored
 }
 uint8_t retrPacketsCount(nRF24L01_struct_t *psNRF24L01) {
+	/*
 	uint8_t tmp = readReg(psNRF24L01, OBSERVE_TX);
 	tmp = (tmp & 0xF0);
-	psNRF24L01->status_struct.packetsRetr = tmp;
-	return tmp;
+	tmp = ((readReg(psNRF24L01, OBSERVE_TX)) & 0xF0);
+	 psNRF24L01->status_struct.packetsRetr = ((readReg(psNRF24L01, OBSERVE_TX)) & 0xF0);
+	 return tmp;
+	 */
+	return (psNRF24L01->status_struct.packetsRetr = ((readReg(psNRF24L01, OBSERVE_TX)) & 0xF0)); //refactored
 }
 void clearlostPacketsCount(nRF24L01_struct_t *psNRF24L01) {
+	/*
 	uint8_t tmp = readReg(psNRF24L01, RF_CH);	//read RF_CH
 	writeReg(psNRF24L01, RF_CH, tmp);			//clear by
+	 */
+	writeReg(psNRF24L01, RF_CH, readReg(psNRF24L01, RF_CH)); //redactored
 }
 
 #if ADVANCED_RF_OPT
@@ -760,9 +774,9 @@ uint8_t setTransmitPipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t *addrBuf, 
 /* RX Payload width */
 uint8_t getRxPayloadWidth(nRF24L01_struct_t *psNRF24L01, uint8_t pipe) {
 	if (checkPipe(pipe)) {
-		uint8_t tmp = readReg(psNRF24L01, (RX_PW_P0 + pipe));
-		psNRF24L01->settings_struct.pipePayLen[pipe] = tmp;
-		return tmp;
+		//uint8_t tmp = readReg(psNRF24L01, (RX_PW_P0 + pipe));
+		psNRF24L01->settings_struct.pipePayLen[pipe] = readReg(psNRF24L01, (RX_PW_P0 + pipe)); //refactored
+		return (psNRF24L01->settings_struct.pipePayLen[pipe] = readReg(psNRF24L01, (RX_PW_P0 + pipe)));
 	}
 	return ERR_CODE;
 }
@@ -829,9 +843,8 @@ uint8_t getTxStatusFIFO(nRF24L01_struct_t *psNRF24L01) {
 
 /* Checking reuse package */
 uint8_t getTxReuse(nRF24L01_struct_t *psNRF24L01) {
-	uint8_t tmp = readBit(psNRF24L01, FIFO_STATUS, TX_REUSE);
-	psNRF24L01->fifo_struct.txReUse = tmp;
-	if (tmp == 0x01) {
+	//uint8_t tmp = readBit(psNRF24L01, FIFO_STATUS, TX_REUSE);
+	if ((psNRF24L01->fifo_struct.txReUse = readBit(psNRF24L01, FIFO_STATUS, TX_REUSE)) == 0x01) { //refactored
 		return TX_REUSE_USED; /* TX_REUSE_USED mean that nRF24 module reuse to send again same package */
 	}
 	return TX_REUSE_UNUSED; /* TX_REUSE_UNUSED mena that nRF24 module doeasn't reuse to send again same package */
@@ -1013,16 +1026,23 @@ static void ceHigh(nRF24L01_struct_t *psNRF24L01) {
 }
 
 static uint8_t readBit(nRF24L01_struct_t *psNRF24L01, uint8_t addr, bitNum_t bit) {
-	uint8_t reg = readReg(psNRF24L01, addr);
-	return ((reg >> bit) & 0x01);
+	//uint8_t reg = readReg(psNRF24L01, addr);
+	return (((readReg(psNRF24L01, addr)) >> bit) & 0x01); //refactored
 }
 static void resetBit(nRF24L01_struct_t *psNRF24L01, uint8_t addr, bitNum_t bit) {
+	/*
 	uint8_t tmp = readReg(psNRF24L01, addr);
-	tmp &= ~(1 << bit); //zmieniono OR na AND
-	writeReg(psNRF24L01, addr, tmp);
+	 tmp &= ~(1 << bit); //zmieniono OR na AND
+	 */
+	uint8_t tmp = ((readReg(psNRF24L01, addr)) & (~(1 << bit)));
+	writeReg(psNRF24L01, addr, tmp); //refactored
 }
 static void setBit(nRF24L01_struct_t *psNRF24L01, uint8_t addr, bitNum_t bit) {
+	/*
 	uint8_t tmp = readReg(psNRF24L01, addr);
 	tmp |= (1 << bit);
-	writeReg(psNRF24L01, addr, tmp);
+	 */
+	uint8_t tmp = ((readReg(psNRF24L01, addr)));
+	tmp |= (1 << bit);
+	writeReg(psNRF24L01, addr, tmp); //refactored
 }

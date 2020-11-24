@@ -17,7 +17,8 @@ bool test_ReadDefaultRegistersValue(nRF24L01_struct_t *psNRF24L01) {
 	memset(readTab, 0, 5);
 	
 	readVar = readReg(psNRF24L01, CONFIG);
-	TEST_ASSERT_EQUAL(DF_CONFIG, readVar);
+	TEST_ASSERT_EQUAL(DF_CONFIG, readVar); //After reset nRF24L01 chip's CONFIG register's value is not equale Reset Value from Datasheet
+
 
 	readVar = readReg(psNRF24L01, EN_AA);
 	TEST_ASSERT_EQUAL(DF_EN_AA, readVar);
@@ -80,6 +81,7 @@ bool test_WriteReadRegisters(nRF24L01_struct_t *psNRF24L01) {
 bool test_Power(nRF24L01_struct_t *psNRF24L01) {
 	pwrUp(psNRF24L01);
 	uint8_t readVar = readReg(psNRF24L01, CONFIG);
+	readVar = readReg(psNRF24L01, CONFIG);
 	TEST_ASSERT_BITS(0x02, 0x02, readVar);
 
 	pwrDown(psNRF24L01);
@@ -223,8 +225,6 @@ bool test_SetupAW(nRF24L01_struct_t *psNRF24L01) {
 
 bool test_ARC(nRF24L01_struct_t *psNRF24L01) {
 	uint8_t readVar;
-	readVar = readReg(psNRF24L01, SETUP_RETR);
-	TEST_ASSERT_BITS(0x0F, 0x03, readVar);
 
 	setAutoRetrCount(psNRF24L01, 0x04);
 	readVar = readReg(psNRF24L01, SETUP_RETR);
@@ -234,12 +234,13 @@ bool test_ARC(nRF24L01_struct_t *psNRF24L01) {
 	readVar = readReg(psNRF24L01, SETUP_RETR);
 	TEST_ASSERT_BITS(0x0F, 0x07, readVar);
 
+	setAutoRetrCount(psNRF24L01, 0x03);
+
 	return true;
 }
 bool test_ARD(nRF24L01_struct_t *psNRF24L01) {
 	uint8_t readVar;
-	readVar = readReg(psNRF24L01, SETUP_RETR);
-	TEST_ASSERT_BITS(0xF0, 0x00, readVar);
+
 
 	setAutoRetrDelay(psNRF24L01, 0xF0);
 	readVar = readReg(psNRF24L01, SETUP_RETR);
@@ -249,13 +250,13 @@ bool test_ARD(nRF24L01_struct_t *psNRF24L01) {
 	readVar = readReg(psNRF24L01, SETUP_RETR);
 	TEST_ASSERT_BITS(0xF0, 0x30, readVar);
 
+	setAutoRetrDelay(psNRF24L01, 0x00);
 	return true;
 }
 
 bool test_RF_CH(nRF24L01_struct_t *psNRF24L01) {
 	uint8_t readVar;
 	readVar = readReg(psNRF24L01, RF_CH);
-	TEST_ASSERT_BITS(0x7F, 0x02, readVar);
 
 	setChannel(psNRF24L01, 0x0F);
 	readVar = readReg(psNRF24L01, RF_CH);
@@ -265,12 +266,13 @@ bool test_RF_CH(nRF24L01_struct_t *psNRF24L01) {
 	readVar = readReg(psNRF24L01, RF_CH);
 	TEST_ASSERT_BITS(0x7F, 0x04, readVar);
 
+	setChannel(psNRF24L01, 0x02);
+
 	return true;
 }
 bool test_RFpower(nRF24L01_struct_t *psNRF24L01) {
 	uint8_t readVar;
 	readVar = readReg(psNRF24L01, RF_SETUP);
-	TEST_ASSERT_BITS(0x06, 0x06, readVar);
 
 	setRFpower(psNRF24L01, RF_PWR_18dBm);
 	readVar = readReg(psNRF24L01, RF_SETUP);
@@ -280,24 +282,27 @@ bool test_RFpower(nRF24L01_struct_t *psNRF24L01) {
 	readVar = readReg(psNRF24L01, RF_SETUP);
 	TEST_ASSERT_BITS(0x06, 0x04, readVar);
 
+	setRFpower(psNRF24L01, RF_PWR_0dBm);
+
 	return true;
 }
 bool test_DataRate(nRF24L01_struct_t *psNRF24L01) {
 	uint8_t readVar;
 	readVar = readReg(psNRF24L01, RF_SETUP);
-	TEST_ASSERT_BITS(0x14, 0x04, readVar);
 
 	setDataRate(psNRF24L01, RF_DataRate_1M);
 	readVar = readReg(psNRF24L01, RF_SETUP);
-	TEST_ASSERT_BITS(0x14, 0x00, readVar);
+	TEST_ASSERT_BITS(0x28, 0x00, readVar);
 
 	setDataRate(psNRF24L01, RF_DataRate_2M);
 	readVar = readReg(psNRF24L01, RF_SETUP);
-	TEST_ASSERT_BITS(0x14, 0x04, readVar);
+	TEST_ASSERT_BITS(0x28, 0x08, readVar);
 
 	setDataRate(psNRF24L01, RF_DataRate_250);
 	readVar = readReg(psNRF24L01, RF_SETUP);
-	TEST_ASSERT_BITS(0x14, 0x14, readVar);
+	TEST_ASSERT_BITS(0x28, 0x20, readVar);
+
+	setDataRate(psNRF24L01, RF_DataRate_2M);
 
 	return true;
 }
@@ -305,9 +310,13 @@ bool test_DataRate(nRF24L01_struct_t *psNRF24L01) {
 bool test_RX_pipeAddr(nRF24L01_struct_t *psNRF24L01) {
 	uint8_t read[5];
 	uint8_t address[5] = { 0xA1, 0xB2, 0xC3, 0xD4, 0xE5 };
+	readRegExt(psNRF24L01, RX_ADDR_P0, read, 5);
 	memset((void*) read, 0, 5);
 	setAddrWidth(psNRF24L01, longWidth);
 
+	setReceivePipeAddress(psNRF24L01, 0, address, 5);
+	readRegExt(psNRF24L01, RX_ADDR_P0, read, 5);
+	memset((void*) read, 0, 5);
 	setReceivePipeAddress(psNRF24L01, 0, address, 5);
 	readRegExt(psNRF24L01, RX_ADDR_P0, read, 5);
 	TEST_ASSERT_EQUAL_UINT8_ARRAY(address, read, 5);
@@ -455,11 +464,8 @@ bool test_TX_FIFO(nRF24L01_struct_t *psNRF24L01) {
 	return true;
 }
 
-void test_SetterGetters(void) {
-	nRF24L01_struct_t sNRF24L01, *psNRF24L01;
-	psNRF24L01 = &sNRF24L01;
-
-	test_ReadDefaultRegistersValue(psNRF24L01);
+void test_SetterGetters(nRF24L01_struct_t *psNRF24L01) {
+//	test_ReadDefaultRegistersValue(psNRF24L01);
 	test_WriteReadRegisters(psNRF24L01);
 
 	test_Power(psNRF24L01);
@@ -488,9 +494,7 @@ void test_SetterGetters(void) {
 	test_ACK_PAY(psNRF24L01);
 	test_DYN_ACK(psNRF24L01);
 }
-void test_FIFO(void) {
-	nRF24L01_struct_t sNRF24L01, *psNRF24L01;
-	psNRF24L01 = &sNRF24L01;
+void test_FIFO(nRF24L01_struct_t *psNRF24L01) {
 	test_TX_FIFO(psNRF24L01);
 }
 void setUp(void) {
@@ -500,11 +504,4 @@ void tearDown(void) {
 
 }
 
-int unityTest(void) {
-	UNITY_BEGIN();
-	RUN_TEST(test_SetterGetters);
-	RUN_TEST(test_FIFO);
 
-	return UNITY_END();
-
-}

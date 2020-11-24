@@ -102,14 +102,18 @@ int main(void)
 	psRF = &sRF;
 	nRF_Init(psRF, &hspi1, &htim1, SPI1_CSN_GPIO_Port, SPI1_CSN_Pin, nRF_CE_GPIO_Port, nRF_CE_Pin);
 	HAL_TIM_Base_Start(psRF->hardware_struct.nRFtim);
-	uint8_t read = getStatus(&sRF);
+	uint8_t read = getStatus(psRF);
+	writeReg(psRF, CONFIG, 0x00);
+	read = readReg(psRF, CONFIG);
 	pwrUp(psRF);
 	read = readReg(psRF, CONFIG);
-	read = readReg(psRF, EN_AA);
-	read = readReg(psRF, EN_RXADDR);
-	read = readReg(psRF, SETUP_RETR);
 
-	unityTest();
+	readRegExt(psRF, RX_ADDR_P0, readTab, 5);
+	setReceivePipeAddress(psRF, 0, writeTab, 5);
+	readRegExt(psRF, RX_ADDR_P0, readTab, 5);
+
+	test_SetterGetters(psRF);
+	test_FIFO(psRF);
   /* USER CODE END 2 */
  
  
