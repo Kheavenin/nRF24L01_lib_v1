@@ -455,9 +455,7 @@ bool test_TX_FIFO(nRF24L01_struct_t *psNRF24L01) {
 	return true;
 }
 
-void test_SetterGetters(void) {
-	nRF24L01_struct_t sNRF24L01, *psNRF24L01;
-	psNRF24L01 = &sNRF24L01;
+void test_SetterGetters(nRF24L01_struct_t *psNRF24L01) {
 
 	test_ReadDefaultRegistersValue(psNRF24L01);
 	test_WriteReadRegisters(psNRF24L01);
@@ -488,9 +486,7 @@ void test_SetterGetters(void) {
 	test_ACK_PAY(psNRF24L01);
 	test_DYN_ACK(psNRF24L01);
 }
-void test_FIFO(void) {
-	nRF24L01_struct_t sNRF24L01, *psNRF24L01;
-	psNRF24L01 = &sNRF24L01;
+void test_FIFO(nRF24L01_struct_t *psNRF24L01) {
 	test_TX_FIFO(psNRF24L01);
 }
 void setUp(void) {
@@ -500,11 +496,3 @@ void tearDown(void) {
 
 }
 
-int unityTest(void) {
-	UNITY_BEGIN();
-	RUN_TEST(test_SetterGetters);
-	RUN_TEST(test_FIFO);
-
-	return UNITY_END();
-
-}

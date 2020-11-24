@@ -14,8 +14,7 @@
 #include "nRF24L01.h"
 #include <stdbool.h>
 
-int unityTest(void);
-void test_SetterGetters(void);
+void test_SetterGetters(nRF24L01_struct_t *psNRF24L01);
 void setUp(void);
 void tearDown(void);
 

@@ -50,7 +50,8 @@
 /* USER CODE BEGIN PV */
 nRF24L01_struct_t *psRF = NULL;
 uint8_t readTab[16];
-uint8_t writeTab[5] = { 0xE0, 0xE0, 0xE0, 0xE0, 0xE0 };
+uint8_t writeTab[5] = { 0xA0, 0xB0, 0xC0, 0xD0, 0xE0 };
+uint8_t writeTab2[5] = { 0xB0, 0xB0, 0xB0, 0xB0, 0xB0 };
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -98,7 +99,7 @@ int main(void)
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
 
-  nRF24L01_struct_t sRF;
+	nRF24L01_struct_t sRF, *psRF;
   psRF = &sRF;
   nRF_Init(psRF, &hspi1, &htim1, SPI1_CSN_GPIO_Port, SPI1_CSN_Pin, nRF_CE_GPIO_Port, nRF_CE_Pin);
   HAL_TIM_Base_Start(psRF->hardware_struct.nRFtim);
@@ -111,9 +112,9 @@ int main(void)
   readRegExt(psRF, RX_ADDR_P0, readTab, 5);
   setReceivePipeAddress(psRF, 0, writeTab, 5);
   readRegExt(psRF, RX_ADDR_P0, readTab, 5);
+	setReceivePipeAddress(psRF, 0, writeTab2, 5);
+	readRegExt(psRF, RX_ADDR_P0, readTab, 5);
 
-  test_SetterGetters(psRF);
-  test_FIFO(psRF);
   /* USER CODE END 2 */
  
  
