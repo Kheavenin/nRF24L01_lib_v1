@@ -714,8 +714,15 @@ uint8_t setReceivePipeAddress(nRF24L01_struct_t *psNRF24L01, uint8_t pipe, uint8
 	if (!checkPipe(pipe)) { //if checkPipe return 0 - end fun. by return 0.
 		return ERR_CODE;
 	}
-	if (((psNRF24L01->address_struct.addrWidth) + 2) != addrBufSize) {
-		return ERR_CODE;
+	if (pipe == 0 || pipe == 1) {
+		if (((psNRF24L01->address_struct.addrWidth) + 2) != addrBufSize) {
+			return ERR_CODE;
+		}
+	}
+	else {
+		if (addrBufSize != 1) {
+			return ERR_CODE;
+		}
 	}
 
 	uint8_t addr = RX_ADDR_P0 + pipe;
