@@ -300,15 +300,15 @@ bool test_DataRate(nRF24L01_struct_t *psNRF24L01) {
 	 */
 	setDataRate(psNRF24L01, RF_DataRate_1M);
 	readVar = readReg(psNRF24L01, RF_SETUP);
-	TEST_ASSERT_BITS(0x14, 0x00, readVar);
+	TEST_ASSERT_BITS(0x28, 0x00, readVar);
 
 	setDataRate(psNRF24L01, RF_DataRate_2M);
 	readVar = readReg(psNRF24L01, RF_SETUP);
-	TEST_ASSERT_BITS(0x14, 0x04, readVar);
+	TEST_ASSERT_BITS(0x28, 0x08, readVar);
 
 	setDataRate(psNRF24L01, RF_DataRate_250);
 	readVar = readReg(psNRF24L01, RF_SETUP);
-	TEST_ASSERT_BITS(0x14, 0x14, readVar);
+	TEST_ASSERT_BITS(0x28, 0x20, readVar);
 
 	return true;
 }
