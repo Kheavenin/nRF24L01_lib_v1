@@ -15,6 +15,8 @@
 #include <stdbool.h>
 
 void test_SetterGetters(nRF24L01_struct_t *psNRF24L01);
+void test_FIFO(nRF24L01_struct_t *psNRF24L01);
+
 void setUp(void);
 void tearDown(void);
 
@@ -44,6 +46,8 @@ bool test_EN_DPL(nRF24L01_struct_t *psNRF24L01);
 bool test_RxPayloadWidth(nRF24L01_struct_t *psNRF24L01);
 bool test_ACK_PAY(nRF24L01_struct_t *psNRF24L01);
 bool test_DYN_ACK(nRF24L01_struct_t *psNRF24L01);
+
+bool test_TX_FIFO(nRF24L01_struct_t *psNRF24L01);
 
 
 #endif /* INC_NRF24L01_LIB_TEST_H_ */
