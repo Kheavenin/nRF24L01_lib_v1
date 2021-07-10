@@ -117,14 +117,9 @@ void readRegExt(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t *pBuf, size
 		HAL_SPI_Receive_IT(psNRF24L01->hardware_struct.nRFspi, (pBuf + i), sizeof(uint8_t));		//receive data
 #endif
 #if SPI_DMA_MODE
-		/*
 		 HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));	//transmit command
 		 HAL_Delay(1);
 		 HAL_SPI_Receive_DMA(psNRF24L01->hardware_struct.nRFspi, (pBuf), sizeof(bufSize));	//receive data
-		 */
-		HAL_SPI_Transmit(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command), SPI_TIMEOUT); //transmit command
-		delayUs(psNRF24L01, 50);
-		HAL_SPI_Receive(psNRF24L01->hardware_struct.nRFspi, (pBuf), bufSize, SPI_TIMEOUT);   //receive data
 #endif
 		csnHigh(psNRF24L01);
 	}
@@ -144,14 +139,10 @@ void writeRegExt(nRF24L01_struct_t *psNRF24L01, uint8_t addr, uint8_t *pBuf, siz
 		HAL_SPI_Transmit_IT(psNRF24L01->hardware_struct.nRFspi, (pBuf + i), sizeof(uint8_t));		//receive data
 #endif
 #if SPI_DMA_MODE
-		/*
 		 HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command));	//transmit command
 		 HAL_Delay(1);
 		 HAL_SPI_Transmit_DMA(psNRF24L01->hardware_struct.nRFspi, pBuf, sizeof(bufSize));	//transmit data
-		 */
-		HAL_SPI_Transmit(psNRF24L01->hardware_struct.nRFspi, &command, sizeof(command), SPI_TIMEOUT); //transmit command
-		delayUs(psNRF24L01, 50);
-		HAL_SPI_Transmit(psNRF24L01->hardware_struct.nRFspi, (pBuf), bufSize, SPI_TIMEOUT);   //receive data
+
 #endif
 		csnHigh(psNRF24L01);
 	}
